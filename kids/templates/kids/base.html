@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>School Management System</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        nav a { margin-right: 15px; }
+        table { border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+        th { background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>School Management System</h1>
+    <nav>
+
+        <a href="{% url 'main_menu' %}">Main Menu</a>
+        <a href="{% url 'school_register' %}">School Register</a>
+        <a href="{% url 'school_fees' %}">Admission Form</a>
+        {% if student %}
+
+{% endif %}
+
+    </nav>
+    <hr>
+
+    {% block content %}
+    {% endblock %}
+
+</body>
+</html>

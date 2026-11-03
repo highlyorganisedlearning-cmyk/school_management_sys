@@ -1,0 +1,31 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container">
+
+    <h2>Student Report Cards</h2>
+<a href="{% url 'main_menu' %}">← Back to Menu</a>
+
+<div class="report-grid">
+{% for r in reports %}
+
+<div class="report-card {% if r.status == 'Owing' %}owing{% else %}cleared{% endif %}">
+    <h3>{{ r.student.reg_number }} - {{ r.student.first_name }} {{ r.student.last_name }}</h3>
+    <p><strong>Grade:</strong> {{ r.grade }}</p>
+    <table class="report-table">
+        <tr><td>Fees Required:</td><td>${{ r.fee_required }}</td></tr>
+        <tr><td>Amount Paid:</td><td>${{ r.paid }}</td></tr>
+        <tr><td>Balance:</td><td>${{ r.balance }}</td></tr>
+        <tr><td>Days Present:</td><td>{{ r.attendance }}</td></tr>
+        <tr><td>Status:</td><td class="status">{{ r.status }}</td></tr>
+    </table>
+</div>
+{% empty %}
+<p>No students found.</p>
+{% endfor %}
+</div>
+{% endblock %}
+
+</div>

@@ -1,0 +1,49 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+
+<div class="container" style="max-width:700px; margin:30px auto;">
+  <h2>Class Teacher Comment</h2>
+  <h3>{{ student.full_name }} - {{ grade }} | {{ term }}</h3>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <label for="commentBox"><strong>Form Teacher Remarks: Behaviour & Attendance</strong></label>
+    <textarea name="comment" id="commentBox" rows="10" style="width:100%; padding:12px; font-size:15px; margin-top:8px; border:1px solid #cbd5e1; border-radius:8px;">{{ existing_comment }}</textarea>
+
+    <div style="margin-top:20px;">
+      <h4 style="margin-bottom:10px;">Quick Comments</h4>
+      {% for c in comments %}
+      <button type="button" class="comment-btn" onclick="setComment(`{{ c|escapejs }}`)">
+        {{ c }}
+      </button>
+      {% endfor %}
+    </div>
+
+    <div style="margin-top:25px;">
+      <button type="submit" name="action" value="exit" class="action-btn">Save & Exit</button>
+      <button type="submit" name="action" value="next" class="action-btn">Save & Next</button>
+      <a href="{% url 'class_register' grade %}" class="cancel-link">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+function setComment(text) {
+  document.getElementById('commentBox').value = text;
+}
+</script>
+
+<style>
+.comment-btn { display: block; width: 100%; margin: 6px 0; padding: 10px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; text-align: left; font-size:14px; }
+.comment-btn:hover { background: #1d4ed8; }
+.action-btn { padding: 12px 20px; margin-right: 10px; background: #16a34a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.action-btn:hover { background: #15803d; }
+.cancel-link { padding: 12px 20px; color: #dc2626; text-decoration: none; }
+</style>
+
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container">
+
+<h3>{{ student.first_name }} {{ student.last_name }} - {{ grade }}</h3>
+
+<table class="summary-table">
+  <tr>
+    <th>Subject</th>
+    <th>Score</th>
+  </tr>
+  {% for sm in subject_marks %}
+  <tr>
+    <td>{{ sm.subject }}</td>
+    <td>{{ sm.score|default:"-" }}</td>
+  </tr>
+  {% endfor %}
+  <tr>
+    <td><strong>Total</strong></td>
+    <td><strong>{{ total }}</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Average</strong></td>
+    <td><strong>{{ average }}</strong></td>
+  </tr>
+</table>
+
+<form method="POST">
+  {% csrf_token %}
+  <label>Head Teacher's Comment</label>
+  <textarea name="comment">{{ comment }}</textarea>
+  <button type="submit">
+    {% if has_next %}Save & Next Student{% else %}Save & Finish{% endif %}
+  </button>
+</form>
+
+<hr>
+<h4>Select Head Teacher's Comment</h4>
+<form method="post">
+    {% csrf_token %}
+   
+    <div style="max-height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
+        {% for num, comment in comments %}
+        <label style="display:block; margin:5px 0;">
+            <input type="radio" name="comment_choice" value="{{ num }}"
+            {% if current_comment == comment %}checked{% endif %}>
+            {{ num }}. {{ comment }}
+        </label>
+        {% endfor %}
+    </div>
+
+    <hr>
+    <p><strong>26. Custom Comment:</strong></p>
+    <textarea name="custom_comment" rows="3" style="width:100%;"
+              placeholder="Type custom comment here..."></textarea>
+
+    <button type="submit" style="margin-top:10px;">Save Comment</button>
+</form>
+
+{% if current_comment %}
+<p><strong>Current Comment:</strong> {{ current_comment }}</p>
+{% endif %}
+
+    <form method="POST">
+  {% csrf_token %}
+  <textarea name="comment">{{ comment }}</textarea>
+  <button type="submit">
+    {% if has_next %}Save & Next Student{% else %}Save & Finish{% endif %}
+  </button>
+</form>
+
+</div>
+{% endblock %}

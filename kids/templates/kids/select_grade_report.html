@@ -1,0 +1,16 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container">
+<h2>Marks Sheets & Reports - Select Class</h2>
+
+{% for grade in grades %}
+    <a href="{% url 'grade_subjects' grade %}" class="btn">{{ grade }}</a><br><br>
+
+    {% endfor %}
+{% endblock %}
+
+</div>

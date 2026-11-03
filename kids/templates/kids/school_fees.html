@@ -1,0 +1,90 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container">
+    <h1>ADMISSION FORM</h1>
+    <a href="{% url 'main_menu' %}">Back to Main Menu</a>
+
+    <h2>Filter by Term</h2>
+    <form method="GET">
+        <select name="term" onchange="this.form.submit()">
+            <option value="">All Terms</option>
+            {% for term in all_terms %}
+                <option value="{{ term }}" {% if term == term_filter %}selected{% endif %}>{{ term }}</option>
+            {% endfor %}
+        </select>
+        <a href="{% url 'school_fees' %}">Clear Filter</a>
+    </form>
+
+    <h2>Summary</h2>
+
+
+    <h3>Add New Student + Parents</h3>
+<form method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="add_student" value="1">
+
+    <fieldset style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+        <legend><b>Student Details</b></legend>
+        First Name: <input type="text" name="first_name" required><br>
+        Last Name: <input type="text" name="last_name" required><br>
+        Grade: <input type="text" name="grade" required><br>
+        Date of Birth: <input type="date" name="date_of_birth"><br> <!-- FIX 3 -->
+        Birth Certificate No: <input type="text" name="birth_cert_no"><br> <!-- NEW -->
+        Gender:
+        <select name="gender" required> <!-- FIX 2 -->
+            <option value="">--Select--</option>
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+        </select><br>
+        Date of Admission: <input type="date" name="date_of_admission"><br>
+    </fieldset>
+
+    <fieldset style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+        <legend><b>Guardian 1 - Primary</b></legend>
+        Name: <input type="text" name="guardian1_name" required><br>
+        Phone: <input type="text" name="guardian1_phone" required><br> <!-- FIX 4: require phone -->
+        Address: <input type="text" name="guardian1_address"><br>
+        Relationship:
+        <select name="guardian1_relationship">
+            <option value="MOTHER">Mother</option>
+            <option value="FATHER">Father</option>
+            <option value="GUARDIAN">Guardian</option>
+        </select>
+    </fieldset>
+
+    <fieldset style="border:1px solid #ccc; padding:10px;">
+        <legend><b>Guardian 2 - Optional</b></legend>
+        Name: <input type="text" name="guardian2_name"><br>
+        Phone: <input type="text" name="guardian2_phone"><br>
+        Address: <input type="text" name="guardian2_address"><br>
+        Relationship:
+        <select name="guardian2_relationship">
+            <option value="">--</option>
+            <option value="MOTHER">Mother</option>
+            <option value="FATHER">Father</option>
+            <option value="GUARDIAN">Guardian</option>
+        </select>
+    </fieldset>
+
+    <button type="submit" style="margin-top:10px;">Add Student</button>
+</form>
+
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Actions</th>
+        </tr>
+        {% for student in students %}
+    <td style="white-space:nowrap;">
+
+       </td>
+
+
+        {% empty %}
+        <tr><td colspan="7">No students yet. Add one above</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

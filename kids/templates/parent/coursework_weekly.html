@@ -1,0 +1,77 @@
+{% extends 'academics/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <h2>Welcome Parent</h2>
+
+
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+{% for week, score_list in weekly_data.items %}
+<div class="mb-4">
+    <h5 class="fw-bold">Week {{ week.week_number }} <small class="text-muted">{{ week.start_date }} - {{ week.end_date }}</small></h5><h>{{'Key: S = Sick, A = Absent, - = Marks Not Entered, -\5 = Student Mark Missing'}}</h>
+    <div class="table-responsive">
+    <table class="table table-bordered table-sm text-center align-middle">
+        <thead class="table-primary">
+            <tr><th>Ex & Tests</th><th>Ex_1</th><th>Ex_2</th><th>Ex_3</th><th>Ex_4</th><th>Ex_5</th><th>Ex_6</th><th>Ex_7</th><th>Test_1</th><th>Test_2</th></tr>
+
+
+        <tr></tr>
+        <tr></tr>
+
+        </thead>
+
+        <style>
+    .shade-A { background: #f8d7da !important; color: #721c24 !important; font-weight: bold; } /* A/5 Absent = Red */
+    .shade-S { background: #fff3cd !important; color: #856404 !important; font-weight: bold; } /* S/5 Sick = Yellow */
+</style>
+
+<tbody>
+{% for s in score_list %}
+<tr>
+    <td class="text-start">{{ s.marksheet.subject.name }}</td>
+
+    <td class="{% if 'A' in s.p1_raw %}shade-A{% elif 'S' in s.p1_raw %}shade-S{% endif %}">
+        {% if s.p1_raw == 'None/' or s.p1_raw == 'None' or not s.p1_raw %}-{% else %}{{ s.p1_raw }}{% endif %}
+    </td>
+    <td class="{% if 'A' in s.p2_raw %}shade-A{% elif 'S' in s.p2_raw %}shade-S{% endif %}">
+        {% if s.p2_raw == 'None/' or s.p2_raw == 'None' or not s.p2_raw %}-{% else %}{{ s.p2_raw }}{% endif %}
+    </td>
+    <td class="{% if 'A' in s.p3_raw %}shade-A{% elif 'S' in s.p3_raw %}shade-S{% endif %}">
+        {% if s.p3_raw == 'None/' or s.p3_raw == 'None' or not s.p3_raw %}-{% else %}{{ s.p3_raw }}{% endif %}
+    </td>
+    <td class="{% if 'A' in s.p4_raw %}shade-A{% elif 'S' in s.p4_raw %}shade-S{% endif %}">
+        {% if s.p4_raw == 'None/' or s.p4_raw == 'None' or not s.p4_raw %}-{% else %}{{ s.p4_raw }}{% endif %}
+    </td>
+    <td class="{% if 'A' in s.p5_raw %}shade-A{% elif 'S' in s.p5_raw %}shade-S{% endif %}">
+        {% if s.p5_raw == 'None/' or s.p5_raw == 'None' or not s.p5_raw %}-{% else %}{{ s.p5_raw }}{% endif %}
+    </td>
+    <td class="{% if 'A' in s.p6_raw %}shade-A{% elif 'S' in s.p6_raw %}shade-S{% endif %}">
+        {% if s.p6_raw == 'None/' or s.p6_raw == 'None' or not s.p6_raw %}-{% else %}{{ s.p6_raw }}{% endif %}
+    </td>
+    <td class="{% if 'A' in s.p7_raw %}shade-A{% elif 'S' in s.p7_raw %}shade-S{% endif %}">
+        {% if s.p7_raw == 'None/' or s.p7_raw == 'None' or not s.p7_raw %}-{% else %}{{ s.p7_raw }}{% endif %}
+    </td>
+    <td class="{% if 'A' in s.p8_raw %}shade-A{% elif 'S' in s.p8_raw %}shade-S{% endif %}">
+        {% if s.p8_raw == 'None/' or s.p8_raw == 'None' or not s.p8_raw %}-{% else %}{{ s.p8_raw }}{% endif %}
+    </td>
+    <td class="{% if 'A' in s.p9_raw %}shade-A{% elif 'S' in s.p9_raw %}shade-S{% endif %}">
+        {% if s.p9_raw == 'None/' or s.p9_raw == 'None' or not s.p9_raw %}-{% else %}{{ s.p9_raw }}{% endif %}
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+
+      {% endfor %}
+
+    </table>
+
+    </div>
+</div>
+
+
+</div>
+{% endblock %}
+
+

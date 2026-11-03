@@ -1,0 +1,25 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<div class="container">
+
+<h2>Academic MarkSheet - {{ grade }}</h2>
+<a href="{% url 'report_cards' %}">← Back to Classes</a> | <a href="{% url 'master_marksheet' grade %}" class="btn">View {{ grade }} Master MarkSheet →</a>
+
+<h3>Select Subject to Enter Marks</h3>
+{% for subject in subjects %}
+    <a href="{% url 'marksheet' grade subject.id %}" class="btn">{{ subject.name }}</a><br><br>
+{% empty %}
+    <p>No subjects found for {{ grade }}. <a href="/admin/kids/subject/add/">Add subjects in admin</a></p>
+{% endfor %}
+
+<hr>
+<h3>Master MarkSheet</h3>
+<a href="{% url 'master_marksheet' grade %}" class="btn">View {{ grade }} Master MarkSheet</a>
+
+{% endblock %}
+Save → Refresh `/reports/Grade 1/` → See 15 subjects as buttons.
+
+</div>

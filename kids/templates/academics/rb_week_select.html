@@ -1,0 +1,24 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+
+<a href="{% url 'record_books_subject_select' subject.grade %}" class="btn btn-sm btn-secondary mb-3">&larr; Back</a>
+
+<div class="container" style="max-width:400px; margin:30px auto;">
+    <div class="container" style="max-width:300px; margin:30px auto;"<h4>Step 3: Select Week for {{ subject.name }}</h4></div>
+    <div class="container" style="max-width:70px; margin:30px auto;">
+        {% for week in weeks %}
+            <a href="{% url 'coursework_marksheet' subject.id week.id %}" class="btn btn-outline-info m-2">
+                Week {{ week.week_number }}: {{ week.start_date }}
+            </a><button style="margin:5px;"></button>
+        {% empty %}
+            <p>No weeks added for this term. Go to Admin > AcademicWeeks</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+</div>

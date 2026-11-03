@@ -1,0 +1,15 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container" style="max-width:600px; margin:30px auto;">
+  <h2>Select Class - Sporting Activities</h2>
+  {% for g in grades %}
+    <a href="{% url 'sports_class_list' g %}"><button style="margin:5px;">{{ g }}</button></a>
+  {% endfor %}
+</div>
+{% endblock %}
+
+

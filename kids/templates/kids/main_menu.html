@@ -1,0 +1,36 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container">
+    {% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>School Management System</title>
+</head>
+<body>
+    <h1>Captain High School - "SMS"</h1>
+    <h1>Main Menu</h1>
+
+<ol>
+   <li><a href="{% url 'school_fees' %}">Admission Form</a></li>
+   <li><a href="{% url 'school_register' %}">School & Class Registers</a></li>
+   <li><a href="{% url 'report_cards' %}">Marksheets & Reports Cards</a></li>
+    <li><a href="{% url 'record_books_class_select' %}">Record of Marks & Course
+Work</a></li>
+    <li><a href="{% url 'sports_class_select' %}">Sporting Activities</a></li> <!-- NEW -->
+</ol>
+
+</ul>
+    <a href="{% url 'school_register' %}"><button>School & Class Registers</button></a>
+    <a href="{% url 'school_fees' %}"><button>Admission Form</button></a>
+    <a href="{% url 'record_books_class_select' %}"><button>Record of Marks & Course Work</button></a>
+    <a href="{% url 'report_cards' %}"><button>Marksheets & Report Cards</button></a>
+    <a href="{% url 'sports_class_select' %}"><button>Sporting Activities</button></a> <!-- NEW -->
+</body>
+</html>
+
+</div>

@@ -1,0 +1,7 @@
+<h2>Parent Portal</h2>
+<form method="POST">
+  {% csrf_token %}  <!-- ADD THIS LINE -->
+  <label>Enter Phone Number:</label>
+  <input type="text" name="phone" placeholder="07xxxxxxx" required>
+  <button type="submit">Login</button>
+</form>

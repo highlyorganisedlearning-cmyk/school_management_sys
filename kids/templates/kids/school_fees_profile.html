@@ -1,0 +1,36 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container">
+
+
+<h2>Whole School Fees Profile</h2>
+<a href="{% url 'school_fees' %}">← Back to School Fees</a>
+
+<table>
+    <tr>
+        <th>Grade</th>
+        <th>Students</th>
+        <th>Fee per Student</th>
+        <th>Total Required</th>
+        <th>Total Paid</th>
+        <th>Balance</th>
+    </tr>
+    {% for data in grade_data %}
+    <tr>
+        <td>{{ data.grade }}</td>
+        <td>{{ data.student_count }}</td>
+        <td>${{ data.fee_structure.total }}</td>
+        <td>${{ data.total_required }}</td>
+        <td>${{ data.total_paid }}</td>
+        <td>${{ data.balance }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">No fee structures set. Go to /admin/ and add them.</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}
+</div>

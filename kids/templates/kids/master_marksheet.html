@@ -1,0 +1,165 @@
+{% extends 'kids/base.html' %}
+<p style="color:red;">Term Range: {{ debug_term_start }} to {{ debug_term_end }}</p>
+{% load custom_filters %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container">
+<h1>{{ grade }} - Master MarkSheet - {{ term.name }}</h1>
+<a href="{% url 'grade_subjects' grade %}">← Back to Subjects</a>
+<a href="{% url 'generate_professional_reports' grade %}" class="btn-download">Generate Class Reports</a>
+
+<div class="table-wrapper">
+<table class="master-table">
+    <thead>
+        <tr>
+            <th>Head's Comment</th>
+            <th>Class Tr's Comment</th>  <!-- NEW -->
+            <th>Reg No</th>
+            <th>Student Name</th>
+            <th>Date of Birth</th>
+            <th>Birth Cert. No.</th>
+            <th>Parent/Guardian’s Name</th>
+            <th>Address</th>
+            <th>Form/Grade</th>
+            <th>Term</th>
+            <th>Year</th>
+            <th>Actual Attendance</th>
+            <th>Possible Attendance</th>
+            <th>No. of Subjects Passed</th>
+            <th>Total No. of Subjects</th>
+            <th>Class Position</th>
+            <th>Total No. of Students in Class</th>
+
+            {# Dynamic subject blocks #}
+            {% for subject in subjects %}
+                <th colspan="7">{{ subject.name|upper }}</th>
+            {% endfor %}
+
+            <th>Total</th>
+            <th>Average</th>
+            <th>Form Teacher’s Remarks</th>
+            <th>Sporting Activities</th>
+            <th>Head’s/Deputy’s Remarks</th>
+            <th>Next Term Fees</th>
+            <th>Next Term Opens On</th>
+            <th>Parent/Guardian’s Signature</th>
+            <th>School Stamp</th>
+        </tr>
+        <tr>
+            {# Empty cells for the first 17 static cols #}
+            {% for i in "x"|rjust:"17" %}<th></th>{% endfor %}
+
+            {# Sub-headers for each subject #}
+            {% for subject in subjects %}
+                <th>EXAM</th>
+                <th>PROJECT</th>
+                <th>CURRENT_AVG</th>
+                <th>GRADE</th>
+                <th>TREND</th>
+                <th>REMARKS</th>
+                <th>Tr’s Initials</th>
+            {% endfor %}
+
+            {# Empty for the last 7 #}
+            {% for i in "x"|rjust:"7" %}<th></th>{% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    {% for student in students %}
+        {% with result=student_results|dict_get:student.id %}
+        <tr>
+            <td>
+  <!-- HEAD COMMENT BUTTON - EXISTING -->
+  <a href="{% url 'head_comments' student.id %}" class="btn-small btn-head">
+    {% if result.head_teacher_comment %}Edit{% else %}Add{% endif %}
+  </a>
+</td>
+
+<td>
+  <!-- Class Tr Comment Button - NEW -->
+  <a href="{% url 'class_teacher_comments' student.id %}" class="btn-small btn-class">
+    {% if result.teacher_comment %}Edit{% else %}Add{% endif %}
+  </a>
+</td>
+
+            <td>{{ student.adm_no }}</td>
+            <td>{{ student.full_name }}</td>
+            <td>{{ student.date_of_birth|date:"Y-m-d" }}</td>
+            <td>{{ student.birth_cert_no|default:"-" }}</td>  {# Birth Cert #}
+            <td>{{ parent_data|dict_get:student.id|dict_get:"name" }}</td> {# Parent Name #}
+            <td>{{ parent_data|dict_get:student.id|dict_get:"address" }}</td> {# Address #}
+            <td>{{ student.grade }}</td>
+            <td>{{ term.name }}</td>
+            <td>{{ term.start_date|date:"Y" }}</td>
+            <td>{{ result.actual_attendance|default:"0" }}</td>
+            <td>{{ result.possible_attendance|default:"0" }}</td>
+            <td>{{ result.subjects_passed|default:"-" }}</td>
+            <td>{{ subjects|length }}</td>
+            <td>{{ result.position|default:"-" }}</td>
+            <td>{{ total_students }}</td>
+
+            {# Subject data #}
+            {% for subject in subjects %}
+                {% with mark=marks_data|dict_get:student.id|dict_get:subject.id %}
+                <td>{{ mark.current_exam_mark|default:"-" }}</td>
+                <td>{{ mark.current_project_mark|default:"-" }}</td>
+                <td>{{ mark.current_avg|default:"-" }}</td>
+                <td>{{ mark.current_grade|default:"-" }}</td>
+                <td>{{ mark.trend|default:"-" }}</td>
+                <td>{{ mark.remarks|default:"-" }}</td>
+                <td>{{ mark.trs_initials|default:"-" }}</td>
+                {% endwith %}
+            {% endfor %}
+
+            <td class="total">{{ result.total_marks|default:"x" }}</td>
+            <td class="average">{{ result.avg|default:"0.0" }}</td>
+
+
+            <td>{{ result.teacher_comment|default:"-" }}</td>
+            <td>{{ student.activities.get_sports_list|default:"-" }} {{ student.activities.clubs|default:"-" }}</td>
+            <td>{{ result.head_teacher_comment|default:"-" }}</td>
+            <td>{{ student.fee_required }}</td>
+            <td>{{ next_term_start|date:"Y-m-d" }}</td>
+            <td></td>
+            <td></td>
+
+        </tr>
+        {% endwith %}
+
+    {% empty %}
+        <tr><td colspan="100%">No students found in {{ grade }}</td></tr>
+    {% endfor %}
+    </tbody>
+    <a href="/export-marksheet/?class={{ grade }}&year={{ year }}&term={{ term }}">
+   Export to Excel (Mark sheets folder)
+</a>
+
+
+</table>
+</div>
+</div>
+
+<style>
+.table-wrapper { overflow-x: auto; }
+.master-table { border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+.master-table th, .master-table td { padding: 6px 8px; border: 1px solid #ddd; text-align: center; }
+.master-table th { background: #2c3e50; color: white; position: sticky; top: 0; }
+.total, .average { font-weight: bold; background: #ecf0f1; }
+.btn-small {
+  padding: 5px 10px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+.btn-head { background: #dc2626; } /* Red for Head */
+.btn-head:hover { background: #b91c1c; }
+.btn-class { background: #2563eb; } /* Blue for Class Teacher */
+.btn-class:hover { background: #1d4ed8; }
+
+
+</style>
+{% endblock %}

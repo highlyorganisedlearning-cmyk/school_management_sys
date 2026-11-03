@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Parent Portal</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .student-card { border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .btn { background: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Welcome Parent</h2>
+
+    {% if students %}
+        <h3>Your Children:</h3>
+        {% for student in students %}
+        <div class="student-card">
+            <h4>{{ student.first_name }} {{ student.last_name }}</h4>
+            <p><b>Adm No:</b> {{ student.adm_no }}</p>
+            <p><b>Class:</b> {{ student.grade_class }}</p>
+
+            <!-- PDF Button coming next -->
+            <a href="{% url 'download_report' student.id %}" class="btn">Download Report Card</a>
+
+        {% endfor %}
+    {% else %}
+        <p>No student found with that phone number.</p>
+    {% endif %}
+
+    <br><a href="/parent/">Logout</a>
+</body>
+</html>

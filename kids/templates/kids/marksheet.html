@@ -1,0 +1,104 @@
+{% extends 'kids/base.html' %}
+{% load custom_filters %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<div class="container">
+
+<h2>{{ grade }} - {{ subject.name }} MarkSheet</h2>
+<a href="{% url 'grade_subjects' grade %}">← Back to Subjects</a> |
+<a href="{% url 'master_marksheet' grade %}">View Master MarkSheet/Generate Class Reports</a>
+
+<form method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="term" value="{{ term }}">
+    <p>
+        <label><strong>Term:</strong></label>
+<select id="termSelect" onchange="window.location.href='?term='+this.value+'&trend_base={{ trend_base }}'">
+  {% for t in all_terms %}
+    <option value="{{ t.name }}" {% if t.name == term %}selected{% endif %}>{{ t.name }}</option>
+  {% endfor %}
+</select>
+
+       <label><strong>Trend Base:</strong></label>
+<select name="trend_base" required>
+    <option value="admission">Current vs Admission</option>
+    <option value="previous">Current vs Previous</option>
+</select>
+
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                 <th>Reg No</th>
+                <th>Student_Name</th>
+                <th>Avg_on_Admn</th>
+                <th>Prev_Avg</th>
+                <th>Exam_Mark</th>
+                <th>Proj_Mark</th>
+                <th>Current_Avg</th>
+                <th>Grade</th>
+                <th>Trend</th>
+                <th>Comment</th>
+                <th>Remarks</th>
+                <th>Tr's Initials</th>
+
+            </tr>
+        </thead>
+ <tbody>
+        {% for student in students %}
+            {% with mark=marks|dict_get:student.id %}
+            <tr>
+               <td style="text-align:center;">{{ student.adm_no }}</td>
+                <td>{{ student.first_name }} {{ student.last_name }}</td>
+                <td style="text-align:center;"><input type="number" name="admission_avg_{{ student.id }}" value="{{ mark.admission_avg }}" min="0" max="100" step="0.1" style="width: 80px;"></td>
+                <td style="text-align:center;">{{ mark.previous_avg }}</td>
+                <td><input type="number" name="current_exam_{{ student.id }}" value="{{ mark.current_exam_mark }}" min="0" max="100" step="0.1" style="width: 80px;"></td>
+                <td style="text-align:center;"><input type="number" name="current_project_{{ student.id }}" value="{{ mark.current_project_mark }}" min="0" max="100" step="0.1" style="width: 80px;"></td>
+                <td style="text-align:center;">{{ mark.current_avg }}</td>
+                <td style="text-align:center;">{{ mark.current_grade }}</td>
+                <td style="text-align:center;">{% if mark.trend > 0 %}+{{ mark.trend }}{% elif mark.trend < 0 %}{{ mark.trend }}{% else %}{{ mark.trend|default:"0" }}{% endif %}</td>
+                <td style="text-align:center;">
+                 <!-- subject Tr Comment Button - NEW -->
+                <a href="{% url 'subject_teacher_comments' student.id term_obj.id subject.id %}" class="btn-small">
+                  {% if mark.remarks %}Edit{% else %}Add{% endif %}
+                </a>
+
+                </td>
+
+                <td style="text-align:center;">{{ mark.remarks }}</td>
+                <td><input type="text" name="trs_initials_{{ student.id }}" value="{% if mark.trs_initials and mark.trs_initials != 'None' and mark.trs_initials != 'GUD' %}{{ mark.trs_initials }}{% endif %}"></td>
+                </tr>
+            {% endwith %}
+        {% empty %}
+            <tr><td colspan="11">No students in {{ grade }}. Add students first.</td></tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+
+    <br>
+    <button type="submit">Save Marks</button>
+    <button type="submit" name="clear_marks" value="1" onclick="return confirm('Clear all Exam & Project marks for {{ term }} - {{ subject.name }}? Admission avg will stay.')" style="background:#c0392b;color:white;margin-left:10px;">Clear Marks</button>
+</form>
+
+<style>
+input[type="number"] {
+    padding: 6px;
+    border: 5px solid #fdd;
+    border-radius: 40px;
+    text-align:center;
+}</style>
+
+    <style>
+input[type="text"] {
+    padding: 6px;
+    border: 5px solid #fdd;
+    border-radius: 40px;
+    text-align:center;
+}</style>
+
+</div>
+{% endblock %}

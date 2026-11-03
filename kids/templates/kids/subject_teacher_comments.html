@@ -1,0 +1,24 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<div class="container">
+
+
+ {{ subject.name }} - {{ term_obj.name }} - {{ student.adm_no }} - {{ student.first_name }} {{ student.last_name }}</h3>
+<p>Trend: {{ mark.trend }} | {{ group }}</p>
+
+<form method="POST">
+  {% csrf_token %}
+  {% for opt in options %}
+    <label><input type="radio" name="comment" value="{{ opt }}" {% if mark.remarks == opt %}checked{% endif %} required> {{ opt }}</label><br>
+  {% endfor %}
+
+  <div style="margin-top:10px; display:flex; gap:10px;">
+    <button type="submit" name="action" value="back" class="btn btn-success">Save Comment</button>
+    <button type="submit" name="action" value="next" class="btn btn-primary">Save & Next Student →</button>
+  </div>
+</form>
+  {% endblock %}
+</div>

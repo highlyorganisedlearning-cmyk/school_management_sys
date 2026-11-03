@@ -1,0 +1,40 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container">
+<h1>Class Register: {{ grade }}</h1>
+<a href="{% url 'school_register' %}">Back to School Register</a>
+
+<h2>{{ today }} - P:{{ present_count }} | S:{{ sick_count }} | A:{{ absent_count }} / {{ total }}</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    <table border="1" cellpadding="5">
+        <tr>
+            <th style="text-align:center;">Action</th>
+            <th style="text-align:center;">Adm No</th>
+            <th style="text-align:center;">Name</th>
+            <th style="text-align:center;">Present</th>
+            <th style="text-align:center;">Sick</th>
+            <th style="text-align:center;">Absent</th>
+        </tr>
+        {% for student in students %}
+        {% with current_status=attendance_today|dict_get:student.id %}
+        <tr>
+            <td style="text-align:center;">
+            <a href="{% url 'download_report_card' student.id 'Term 1' %}" class="btn btn-primary btn-sm">
+            Generate Report
+            </a>
+            <td style="text-align:center;">{{ student.adm_no }}</td>
+            <td>{{ student.first_name }} {{ student.last_name }}</td>
+            </td>
+            <td style="text-align:center;"><input type="radio" name="status_{{ student.id }}" value="Present" {% if current_status == 'Present' %}checked{% endif %}></td>
+            <td style="text-align:center;"><input type="radio" name="status_{{ student.id }}" value="Sick" {% if current_status == 'Sick' %}checked{% endif %}></td>
+            <td style="text-align:center;"><input type="radio" name="status_{{ student.id }}" value="Absent" {% if current_status == 'Absent' or not current_status %}checked{% endif %}></td>
+            </tr>
+        {% endwith %}
+        {% endfor %}
+    </table>
+      <button type="submit">Save Attendance for {{ today }}</button>
+</form>
+</div>

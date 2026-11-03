@@ -1,0 +1,47 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container">
+<h1>Class Register: {{ grade }}</h1>
+<a href="{% url 'school_register' %}">Back to School Register</a>
+
+<h1>Head Supervision Engine - {{ today }} | {{ current_term }} Week {{ current_week }}</h1>
+
+<h2>1. ATTENDANCE MONITOR</h2>
+<table border="1" cellpadding="6"><tr><th>Class</th><th>Marked/Total</th><th>%</th><th>Status</th><th>V11</th></tr>
+{% for r in attendance_board %}<tr><td>{{ r.grade }}</td><td>{{ r.marked }}/{{ r.total }}</td><td>{{ r.percent }}%</td><td>{{ r.status }}</td><td><a href="{% url 'class_register' r.grade %}">Class Register</a></td></tr>{% endfor %}</table>
+
+
+<h3>3. COURSEWORK MONITOR</h3>
+<table border="1" cellpadding="6">
+<tr><th>Subject</th><th>Actual</th><th>Expected</th><th>%</th><th>V11</th></tr>
+{% for c in coursework_board %}
+<tr>
+  <td>{{ c.subject }}</td>
+  <td>{{ c.entered }}</td>
+  <td>{{ c.expected }}</td>
+  <td>{{ c.percent }}%</td>
+
+  <td><a href="{% url 'record_books_week_select' c.subject_id %}?class={{ c.form }}">CourseWork Marksheet</a></td>
+
+</tr>
+{% endfor %}
+
+</table>
+
+
+<h2>2. MARKSHEET MONITOR</h2>
+<table border="1" cellpadding="6">
+<tr><th>Subject</th><th>Entered</th><th>Expected</th><th>%</th><th>V11</th><th>V11</th></tr>
+{% for s in subject_board %}
+<tr>
+  <td>{{ s.subject }}</td><td>{{ s.entered }}</td><td>{{ s.expected }}</td><td>{{ s.percent }}%</td>
+  <td>{% if s.form %}<a href="{% url 'class_register' s.form %}">Class Register</a>{% else %}No Form{% endif %}</td>
+  <td><a href="{% url 'master_marksheet' s.form %}" class="btn">View {{ form }} Master MarkSheet</a></td>
+</tr>
+{% endfor %}
+
+</table>
+
+
+</div>

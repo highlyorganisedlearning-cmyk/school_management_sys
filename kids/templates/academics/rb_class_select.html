@@ -1,0 +1,17 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container" style="max-width:600px; margin:30px auto;">
+
+   <h2>Select Class - For CourseWork Mark Sheet</h2>
+  {% for grade in grades %}
+     <a href="{% url 'record_books_subject_select' grade %}"</a><button style="margin:5px;">{{ grade }}</button></a>
+    {% empty %}
+
+            <p>No classes found. Add Subjects first.</p>
+        {% endfor %}
+</div>
+{% endblock %}

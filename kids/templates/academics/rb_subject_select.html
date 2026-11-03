@@ -1,0 +1,27 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<a href="{% url 'record_books_class_select' %}" class="btn btn-sm btn-outline-secondary mb-3">&larr; Back to Classes</a>
+
+<div class="container" style="max-width:600px; margin:30px auto;">
+
+    {% for subject in subjects %}
+            <div class="col-md-6">
+                <a href="{% url 'record_books_week_select' subject.id %}">
+                    <div class="p-3 bg-white border rounded-3 shadow-sm h-100 d-flex justify-content-between align-items-center" style="border-left:4px solid #198754 !important;">
+                        <div>
+                            <div class="fw-bold text-dark">{{ subject.name }}</div><button style="margin:5px;"></button></a>
+                            <small class="text-muted">{{ subject.teacher }}</small>
+                        </div>
+                        <span class="badge bg-success-subtle text-success rounded-pill"></span>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <p>No subjects for this grade.</p>
+            {% endfor %}
+        </div>
+{% endblock %}

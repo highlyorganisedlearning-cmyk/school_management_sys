@@ -1,0 +1,66 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container">
+
+<h2>Fees Profile: {{ student.first_name }} {{ student.last_name }} - {{ student.grade }}</h2>
+<a href="{% url 'school_fees' %}">← Back to School Fees</a>
+
+{% if fee_structure %}
+<h3>Fee Breakdown: Required vs Paid vs Owing</h3>
+<table>
+    <tr>
+        <th>Fee Type</th>
+        <th>Required</th>
+        <th>Paid</th>
+        <th>Owing</th>
+    </tr>
+    {% for item in breakdown %}
+    <tr>
+        <td>{{ item.label }}</td>
+        <td>${{ item.required }}</td>
+        <td>${{ item.paid|floatformat:2 }}</td>
+        <td><strong>${{ item.owing|floatformat:2 }}</strong></td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <th>TOTAL</th>
+        <th>${{ fee_structure.total }}</th>
+        <th>${{ total_paid|floatformat:2 }}</th>
+        <th>${{ balance|floatformat:2 }}</th>
+    </tr>
+</table>
+{% else %}
+<p><strong>No fee structure set for {{ student.grade }}. Go to /admin/ and add it.</strong></p>
+{% endif %}
+
+<h3>Payment History</h3>
+<table>
+    <tr><th>Date</th><th>Term</th><th>Amount</th><th>Covers</th></tr>
+    {% for p in payments %}
+    <tr>
+        <td>{{ p.date_paid }}</td>
+        <td>{{ p.term }}</td>
+        <td>${{ p.amount }}</td>
+        <td>
+            {% for item in p.items.all %}
+                {% if item.fee_type == 'other' and item.note %}
+                    Other: ${{ item.amount }} - {{ item.note }}
+                {% else %}
+                    {{ item.fee_type|title|cut:"_" }}: ${{ item.amount }}
+                {% endif %}
+                {% if not forloop.last %}<br>{% endif %}
+            {% empty %}
+                No breakdown
+            {% endfor %}
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">No payments yet</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}
+</div>

@@ -1,0 +1,44 @@
+
+
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Parent Portal</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .student-card { border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .btn { background: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; margin-right:5px; }
+    </style>
+</head>
+<body>
+
+    <h2>Welcome Parent</h2>
+
+    {% if students %}
+        <h3>Your Children:</h3>
+        {% for student in students %}
+        <div class="student-card">
+            <h4>{{ student.first_name }} {{ student.last_name }}</h4>
+            <p><b>Adm No:</b> {{ student.adm_no }}</p>
+            <p><b>Class:</b> {{ student.grade }}</p>
+
+            <!-- ITEM 1: REPORT CARD -->
+            <a href="{% url 'parent_coursework_weekly' student.id %}" class="btn btn-primary">Weekly CourseWork Marks</a>
+            <a href="{% url 'download_report_card' student.id 'Term 1' %}" class="btn" style="background:#17a2b8;">Download Report Term 1</a>
+            <a href="{% url 'download_report_card' student.id 'Term 2' %}" class="btn" style="background:#17a2b8;">Download Report Term 2</a>
+            <a href="{% url 'download_report_card' student.id 'Term 3' %}" class="btn" style="background:#17a2b8;">Download Report Term 3</a>
+            <br><br>
+            <!-- ITEM 2: INVOICE -->
+
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No student found with that phone number.</p>
+    {% endif %}
+    <br><a href="/parent/">Logout</a>
+</body>
+</html>

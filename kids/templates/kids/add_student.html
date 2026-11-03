@@ -1,0 +1,29 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container">
+
+<h2>Add Student</h2>
+<a href="{% url 'school_fees' %}">← Back to School Fees</a>
+
+<form method="POST">
+    {% csrf_token %}
+    <p>First Name: <input type="text" name="first_name" required></p>
+    <p>Last Name: <input type="text" name="last_name" required></p>
+    <p>Class:
+        <select name="grade" required>
+            <option value="">-- Select Class --</option>
+            {% for fs in fee_structures %}
+                <option value="{{ fs.grade }}">{{ fs.grade }} - ${{ fs.total }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <button type="submit">Save Student</button>
+</form>
+<p><small>Reg Number will auto-generate: T002, T003, etc</small></p>
+{% endblock %}
+
+</div>

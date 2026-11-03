@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><title>Parent Portal</title></head>
+<body style="font-family:Arial; padding:20px;">
+<h2> Parent Portal</h2>
+<form method="POST">
+  {% csrf_token %}
+  <label>Enter Phone Number:</label>
+  <input type="text" name="phone" placeholder="07xxxxxxx" required>
+  <button type="submit">Login</button>
+</form>
+</body>
+</html>

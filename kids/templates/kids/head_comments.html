@@ -1,0 +1,105 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+<div class="container" style="max-width:1100px; margin:20px auto;">
+  <h2>Head Comment</h2>
+  <h3>{{ student.first_name }} {{ student.last_name }} - {{ grade }} | {{ term }}</h3>
+
+  <div style="display:flex; gap:30px; align-items:flex-start;">
+
+    <!-- Left: Comment Box -->
+    <div style="flex:2;">
+      <form method="post">
+        {% csrf_token %}
+
+        <label for="commentBox"><strong>Comment:</strong></label>
+        <textarea name="comment" id="commentBox" rows="8" style="width:100%; padding:10px; font-size:14px; margin-top:5px;">{{ existing_comment }}</textarea>
+
+        <div style="margin-top:20px;">
+          <button type="button" id="toggleBtn" onclick="toggleComments()">▶ Quick Comments</button>
+          <div id="commentPanel" style="display:none; margin-top:10px;">
+            {% for c in comments %}
+            <button type="button" class="comment-btn" onclick="setComment(`{{ c|escapejs }}`)">
+              {{ c|truncatechars:55 }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div style="margin-top:20px;">
+          <button type="submit" name="action" value="exit" class="action-btn">Save & Exit</button>
+          <button type="submit" name="action" value="next" class="action-btn">Save & Next</button>
+          <a href="{% url 'class_register' grade %}" class="cancel-link">Cancel</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right: Results Box -->
+    <div style="flex:1; border:1px solid #cbd5e1; border-radius:8px; padding:15px; background:#f8fafc;">
+      <h4 style="margin-top:0;">Results - {{ term }}</h4>
+      <p><strong>Average:</strong> <span style="font-size:18px;">{{ average }}%</span></p>
+
+      {% if subjects_data %}
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid #cbd5e1;">
+              <th style="text-align:left; padding:6px;">Subject</th>
+              <th style="text-align:right; padding:6px;">Mark</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in subjects_data %}
+            <tr>
+              <td style="padding:6px;">{{ s.subject }}</td>
+              <td style="padding:6px; text-align:right; {% if s.low %}color:#dc2626; font-weight:600;{% endif %}">
+                {{ s.score }}%
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p style="color:#64748b;">No marks recorded for this term.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<script>
+function toggleComments() {
+  const panel = document.getElementById('commentPanel');
+  const btn = document.getElementById('toggleBtn');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    btn.textContent = '▼ Quick Comments';
+  } else {
+    panel.style.display = 'none';
+    btn.textContent = '▶ Quick Comments';
+  }
+}
+function setComment(text) {
+  document.getElementById('commentBox').value = text;
+}
+</script>
+
+<style>
+#toggleBtn {
+  padding: 10px 15px; background: #f1f5f9; border: 1px solid #cbd5e1;
+  border-radius: 6px; cursor: pointer; font-weight: 600;
+}
+.comment-btn {
+  display: block; width: 100%; margin: 6px 0; padding: 10px;
+  background: #2563eb; color: white; border: none; border-radius: 6px;
+  cursor: pointer; text-align: left;
+}
+.comment-btn:hover { background: #1d4ed8; }
+.action-btn {
+  padding: 12px 20px; margin-right: 10px; background: #16a34a;
+  color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+}
+.action-btn:hover { background: #15803d; }
+.cancel-link { padding: 12px 20px; color: #dc2626; text-decoration: none; }
+</style>
+
+{% endblock %}

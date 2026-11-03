@@ -1,0 +1,18 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container">
+<h2>Record Expenditure</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Deduct</button>
+</form>
+<p><a href="{% url 'expenditure_log' %}">View Expenditure Log</a></p>
+<a href="{% url 'bursar_summary' %}">Back to Summary</a>
+
+</div>
+{% endblock %}

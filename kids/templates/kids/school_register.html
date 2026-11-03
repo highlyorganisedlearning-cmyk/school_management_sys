@@ -1,0 +1,121 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+<div class="container" style="margin:20px; font-family:Arial;">
+  <h3 style="text-align:center; color:#2F5597;">📘 OFFICIAL CLASS REGISTER - TERM {{ term }} {{ year }}</h3>
+  <p style="text-align:center;">Ministry of Primary and Secondary Education</p>
+
+  <!-- LIVE SCHOOL DASHBOARD - PUT LIVE NOW CAP -->
+<div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap; margin:20px 0;">
+
+  <div style="background:#C6EFCE; padding:15px 25px; border-radius:8px; text-align:center; min-width:150px; border:2px solid green;">
+    <div style="font-size:12px;">LIVE PRESENT TODAY</div>
+    <div style="font-size:32px; font-weight:bold; color:green;">{{ today_present }}</div>
+    <div style="font-size:11px;">{{ today }} | {{ attendance_rate }}% Attendance</div>
+  </div>
+
+  <div style="background:#FFEB9C; padding:15px 25px; border-radius:8px; text-align:center; min-width:120px;">
+    <div style="font-size:12px;">Absent Today</div>
+    <div style="font-size:28px; font-weight:bold;">{{ today_absent }}</div>
+  </div>
+
+  <div style="background:#D9D9D9; padding:15px 25px; border-radius:8px; text-align:center; min-width:120px;">
+    <div style="font-size:12px;">Sick Today</div>
+    <div style="font-size:28px; font-weight:bold;">{{ today_sick }}</div>
+  </div>
+
+  <div style="background:#BDD7EE; padding:15px 25px; border-radius:8px; text-align:center; min-width:150px;">
+    <div style="font-size:12px;">Total Present / Enrolment</div>
+    <div style="font-size:28px; font-weight:bold;">{{ today_possible }} / {{ total_enrolment }}</div>
+  </div>
+
+</div>
+
+<!-- AUTO REFRESH EVERY 60 SECONDS FOR LIVE -->
+<meta http-equiv="refresh" content="60">
+
+<!-- LIVE PER CLASS TABLE -->
+<details style="margin:15px 0; border:1px solid #ccc; padding:10px; border-radius:5px;">
+  <summary style="cursor:pointer; font-weight:bold; color:#2F5597;">📊 Click to see Live Present per Class (All Classes Today)</summary>
+  <table border="1" style="width:100%; margin-top:10px; border-collapse:collapse; font-size:12px;">
+    <tr style="background:#2F5597; color:black;"><th>Class</th><th>Enrolment</th><th>Present Today</th><th>Fractions</th></tr>
+    {% for cl in classes_live %}
+    <tr>
+      <td>{{ cl.grade }}</td>
+      <td style="text-align:center;">{{ cl.enrol }}</td>
+      <td style="text-align:center; font-weight:bold; color:green;">{{ cl.present }}</td>
+      <td style="text-align:center;">{% if cl.enrol %}{{ cl.present }} / {{ cl.enrol }}{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</details>
+
+
+  <!-- FILTERS -  -->
+  <div style="text-align:center; margin:20px 0; background:#f0f4ff; padding:15px; border-radius:8px;">
+    <form method="GET" action="" style="display:inline-block;">
+      <label><b>Year:</b></label>
+      <select name="year" style="padding:8px; margin:0 10px;">
+        {% for y in all_years %}
+        <option value="{{ y }}" {% if y|stringformat:"s" == year|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+
+      <label><b>Term:</b></label>
+      <select name="term" style="padding:8px; margin:0 10px;">
+        {% for t in all_terms %}
+        <option value="{{ t }}" {% if t|stringformat:"s" == term|stringformat:"s" %}selected{% endif %}>Term {{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label><b>Class:</b></label>
+      <select name="grade" style="padding:8px; margin:0 10px; width:150px;">
+        {% for c in all_classes %}
+        <option value="{{ c }}" {% if c == grade %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+
+      <button type="submit" style="padding:8px 20px; background:#2F5597; color:white; border:none; cursor:pointer; border-radius:4px;">Load Class</button>
+    </form>
+  </div>
+
+  <!-- ACTION BUTTONS - NOW WITH YEAR/TERM -->
+  <div style="text-align:center; margin-bottom:20px;">
+    <a href="{% url 'official_register_excel' grade year term %}"
+       style="padding:12px 25px; background:green; color:white; text-decoration:none; font-weight:bold; margin:5px; border-radius:4px; display:inline-block;">
+       📥 Download Balanced Excel ({{ grade }} - T{{ term }} {{ year }})
+    </a>
+    <a href="{% url 'class_register' grade %}"{{ grade }}/?year={{ year }}&term={{ term }}"
+       style="padding:12px 25px; background:#2F5597; color:white; text-decoration:none; font-weight:bold; margin:5px; border-radius:4px; display:inline-block;">
+       📝 Mark Daily Attendance
+    </a>
+  </div>
+
+  <!-- SUMMARY BOX - DYNAMIC NOW -->
+  <div style="border:2px solid #2F5597; padding:15px; border-radius:5px; background:white;">
+    <h4>Class: {{ grade }} - Enrolment: {{ total_students }} (Girls: {{ girls_count }} / Boys: {{ boys_count }})</h4>
+    <p><b>Term:</b> {{ term_label }}</p>
+    <p><b>Balancing:</b> Actual Attendance (Green) + Actual Absenteeism (Yellow) + Actual Sick (Grey) = Possible Attendance (Blue)</p>
+    <p><b>Print:</b> A3 Landscape - Fit to 1 page wide </p>
+  </div>
+
+  <!-- TABLE -->
+  <table border="1" style="width:100%; margin-top:20px; font-size:12px; border-collapse:collapse;">
+    <tr style="background:#2F5597; color:Black;">
+      <th>#</th><th>Adm No</th><th>Student Name</th><th>Present</th><th>Absent</th><th>Sick</th><th>Total</th>
+    </tr>
+    {% for s in students %}
+    <tr>
+      <td style="text-align:center;">{{ forloop.counter }}</td>
+      <td style="text-align:center;">{{ s.adm_no }}</td>
+      <td>{{ s.full_name }}</td>
+      <td style="text-align:center;">{{ s.present_count }}</td>
+      <td style="text-align:center;">{{ s.absent_count }}</td>
+      <td style="text-align:center;">{{ s.sick_count }}</td>
+      <td style="text-align:center;">{{ s.total_days }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7" style="text-align:center; padding:20px;">No students in {{ grade }} yet. Add via Admission Form.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'kids/base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container" id="invoice-to-print" style="max-width:800px; margin:auto;">
+
+<h1 style="text-align:center;">SCHOOL INVOICE</h1>
+<p style="text-align:center;">{{ school_name|default:"MOUNT SUNSET ACADEMY" }}</p>
+<hr>
+
+<table style="width:100%;">
+<tr>
+    <td><b>Invoice No:</b> {{ invoice.invoice_number }}</td>
+    <td style="text-align:right;"><b>Date:</b> {{ invoice.date_issued }}</td>
+</tr>
+</table>
+
+<hr>
+<p><b>Student:</b> {{ invoice.student.first_name }} {{ invoice.student.last_name }}</p>
+<p><b>Reg No:</b> {{ invoice.student.reg_number }}</p>
+<p><b>Grade/Class:</b> {{ invoice.student.grade }}</p>
+<p><b>Term:</b> {{ invoice.term.name }}</p>
+<p><b>Description:</b> {{ invoice.notes }}</p>
+
+<hr>
+<table style="width:100%; border-collapse:collapse;">
+    <thead>
+        <tr style="border-bottom:2px solid #000;">
+            <th style="text-align:left; padding:8px;">Description</th>
+            <th style="text-align:right; padding:8px;">Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="padding:8px;">School Fees - {{ invoice.term.name }}</td>
+            <td style="text-align:right; padding:8px;">${{ invoice.total_amount }}</td>
+        </tr>
+        <tr style="border-top:1px solid #ccc;">
+            <td style="padding:8px;"><b>Amount Paid</b></td>
+            <td style="text-align:right; padding:8px;"><b>${{ invoice.amount_paid }}</b></td>
+        </tr>
+        <tr style="border-top:2px solid #000;">
+            <td style="padding:8px;"><b>BALANCE DUE</b></td>
+            <td style="text-align:right; padding:8px;"><b>${{ invoice.balance }}</b></td>
+        </tr>
+    </tbody>
+</table>
+
+{% if primary_parent %}
+<hr>
+<p><b>Billed To Parent/Guardian:</b> {{ primary_parent.parent.full_name }}</p>
+<p><b>Contact:</b> {{ primary_parent.parent.phone }}</p>
+{% endif %}
+
+<hr>
+<div style="display:flex; gap:10px; margin-top:20px; justify-content:center;">
+    <button onclick="window.print()" style="background:#007bff; color:white; padding:10px 20px; border:none; cursor:pointer;">Print Invoice</button>
+    <a href="{% url 'send_invoice' invoice.id %}" style="background:#28a745; color:white; padding:10px 20px; text-decoration:none;">Send to Parent</a>
+    <a href="{% url 'school_fees' %}" style="background:#6c757d; color:white; padding:10px 20px; text-decoration:none;">Back to Fees</a>
+</div>
+</div>
+
+<style>
+@media print {
+    body * { visibility: hidden; }
+    #invoice-to-print, #invoice-to-print * { visibility: visible; }
+    #invoice-to-print { position: absolute; left: 0; top: 0; width: 100%; }
+}
+</style>
+{% endblock %}
