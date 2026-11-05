@@ -289,39 +289,6 @@ def class_register(request, grade):
     }
     return render(request, 'kids/class_register.html', context)
 
-#def class_register(request, grade):
-#    today = date.today()
-#    students = Student.objects.filter(grade=grade).order_by('last_name')
-
-#    # Get today's attendance records for this grade
-#    attendance_today = {a.student_id: a.status for a in Attendance.objects.filter(grade=grade, date=today)}
-
-#    if request.method == 'POST':
-#        # Clear today's records for this grade first, then re-save
-#        Attendance.objects.filter(grade=grade, date=today).delete()
-
-#        for student in students:
-#            status = request.POST.get(f'status_{student.id}', 'Absent')  # get status from radio buttons
-#            Attendance.objects.create(student=student, grade=grade, status=status, date=today)
-
-#        return redirect('class_register', grade=grade)
-
-#    # Stats for header
-#    present_count = list(attendance_today.values()).count('Present')
-#    sick_count = list(attendance_today.values()).count('Sick')
-#    absent_count = list(attendance_today.values()).count('Absent')
-
-#    context = {
-#        'grade': grade,
-#        'students': students,
-#        'attendance_today': attendance_today,  # dict {student_id: status}
-#        'today': today,
-#        'total': students.count(),
-#        'present_count': present_count,
-#        'sick_count': sick_count,
-#        'absent_count': absent_count,
-#    }
-#    return render(request, 'kids/class_register.html', context)
 
 
 @login_required
@@ -1376,8 +1343,7 @@ def download_report_card(request, student_id, term):
     photo_path = get_student_photo_path(student.grade, student.adm_no)
     stamp_path = get_stamp_path()
 
-    print(f"[PHOTO CHECK] {photo_path} exists={photo_path.exists()}")
-    print(f"[STAMP CHECK] {stamp_path} exists={stamp_path.exists()}")
+    
 
     context = {
         # 1 to 15 - HEADER - WHERE MASTER STORED IT
