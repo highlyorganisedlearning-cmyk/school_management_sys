@@ -1287,8 +1287,9 @@ def download_report_card(request, student_id, term):
                                              status__in=['Present', 'Sick']).count()
     subjects_passed = sum(1 for m in m_list if getattr(m, 'current_grade', '') in ['A', 'B', 'C'])
 
-    template_path = 'C:/school_management_sys/kids/templates/word/Report_card_template.docx'
-    doc = DocxTemplate(template_path)
+   template_path = settings.BASE_DIR / "kids" / "templates" / "word" / "Report_card_template.docx"
+doc = Document(str(template_path))
+
 
 
     position = ''
@@ -1326,9 +1327,10 @@ def download_report_card(request, student_id, term):
     is_a_level = any(k in grade_str for k in ['5', '6', 'A-LEVEL', 'LOWER', 'UPPER'])
 
     if is_a_level or request.GET.get('template') == '2':
-        template_path = 'C:/school_management_sys/kids/templates/word/Report_card_template_A_LEVEL.docx'
+        template_path = os.path.join(settings.BASE_DIR, "kids", "templates", "word", "Report_card_template_A_LEVEL.docx")
     else:
-        template_path = 'C:/school_management_sys/kids/templates/word/Report_card_template.docx'
+         template_path = os.path.join(settings.BASE_DIR, "kids", "templates", "word", "Report_card_template.docx")
+
 
     def get_mark(index, field_name):
         if index < len(m_list):
