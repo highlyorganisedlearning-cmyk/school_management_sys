@@ -50,9 +50,9 @@ def get_student_photo_path(form_or_grade, adm_no):
     jpg_path = folder / f"{adm_no}.jpg"
 
     if png_path.exists():
-        return png_path
+        return None
     if jpg_path.exists():
-        return jpg_path
+      return None
     # fallback: try directly in Form_3A folder
     return None
 
