@@ -494,7 +494,7 @@ def generate_professional_reports(request, grade, grade_letter=None):
 
     # 3. Process the Template (The "shutil" way)
     # Make sure you have a file named 'report_template.docx' in your project root
-    template_path = os.path.join(settings.BASE_DIR, 'report_card_template.docx')
+    template_path = os.path.join(settings.BASE_DIR, 'Report_card_template.docx')
     template = DocxTemplate(template_path)
 
     for student in students:
