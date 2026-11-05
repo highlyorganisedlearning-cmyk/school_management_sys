@@ -58,7 +58,9 @@ def get_student_photo_path(form_or_grade, adm_no):
 
 
 def get_stamp_path():
-    return BASE_KIDS / "school" / 'Date_Stamp.png'
+    p = BASE_KIDS / "school" / "Date Stamp.png"
+    return p if p.exists() else None
+
 
 
 @register.filter
