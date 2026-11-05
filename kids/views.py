@@ -36,7 +36,7 @@ def is_student_active_in_subject(student, subject):
 if os.path.exists(r"C:\school_management_sys"):
     BASE_KIDS = Path(r"C:\school_management_sys\kids")
 else:
-    BASE_KIDS = Path("/opt/school/kids")  # our droplet path
+    BASE_KIDS = Path(settings.BASE_DIR) / "kids"
 
 
 def get_student_photo_path(form_or_grade, adm_no):
@@ -54,7 +54,7 @@ def get_student_photo_path(form_or_grade, adm_no):
     if jpg_path.exists():
         return jpg_path
     # fallback: try directly in Form_3A folder
-    return png_path  # will be handled as missing later
+    return None
 
 
 def get_stamp_path():
