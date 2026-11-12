@@ -3,7 +3,42 @@ from django.contrib import messages
 from django.forms import modelformset_factory
 from kids.models import Student, Subject, AcademicWeek, CourseWorkMarkSheet, CourseWorkScore, Term
 from .forms import CourseWorkScoreForm, CourseWorkMarkSheetForm
+from datetime import timedelta
+from kids.models import CourseWorkMarkSheet, CourseWorkScore
 
+
+
+def ensure_weeks_for_term(term):
+    # School week: Monday to Sunday - includes weekends
+    if not term.start_date or not term.end_date:
+        return
+
+    # Find first Monday
+    # Monday = 0, Sunday = 6
+    if term.start_date.weekday() == 6:
+        # Term starts on Sunday - that Sunday belongs to last week
+        # Week 1 starts next day, Monday
+        first_monday = term.start_date + timedelta(days=1)
+    else:
+        # Mon to Sat - Week 1 starts on Monday of that week
+        first_monday = term.start_date - timedelta(days=term.start_date.weekday())
+
+    week_number = 1
+    week_start = first_monday
+
+    while week_start <= term.end_date:
+        week_end = week_start + timedelta(days=6)  # Sunday
+        if week_end > term.end_date:
+            week_end = term.end_date
+
+        AcademicWeek.objects.get_or_create(
+            term=term,
+            week_number=week_number,
+            defaults={'start_date': week_start, 'end_date': week_end}
+        )
+
+        week_number += 1
+        week_start = week_start + timedelta(days=7)  # next Monday
 
 def record_books_class_select(request):
     # Get unique grades from subjects
@@ -18,6 +53,7 @@ def record_books_subject_select(request, grade):
 
 def record_books_week_select(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
+    ensure_weeks_for_term(subject.term)
     weeks = AcademicWeek.objects.filter(term=subject.term).order_by('week_number')
     return render(request, 'academics/rb_week_select.html', {'weeks': weeks, 'subject': subject})
 
@@ -78,6 +114,8 @@ def coursework_marksheet(request, subject_id, week_id):
     })
 
 
+
+
 from django.shortcuts import redirect
 from kids.models import Student, Subject, SubjectEnrollment
 
@@ -123,6 +161,7 @@ def exclude_whole_class(request):
         messages.success(request,
                          f"🚫 Excluded {count} learners of {grade} from {Subject.objects.get(id=subject_id)} - Master will now show 100%!")
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
 
 
 

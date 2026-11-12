@@ -34,14 +34,13 @@ urlpatterns = [
     path('sports/<str:grade>/', views.sports_class_list, name='sports_class_list'),
     path('subject-comments/<int:student_id>/<int:term_id>/<int:subject_id>/',login_required(views.subject_teacher_comments), name='subject_teacher_comments'),
     path('head/supervision/', views.head_supervision_engine, name='head_supervision'),
+   # path('coursework/term-summary/', views.coursework_term_summary, name='coursework_term_summary'),
     path('class/<str:grade>/', views.class_register, name='class_register'),
     path('class/<str:grade>/master/', views.class_master_marksheet, name='class_master_marksheet'), # ADD THIS
     path('coursework/<int:subject_id>/', views.record_books_week_select, name='coursework_shortcut'), # ADD THIS for V11
     path('record-books/<int:subject_id>/weeks/', acad_views.record_books_week_select, name='record_books_week_select'),
     path('coursework/<int:subject_id>/', acad_views.record_books_week_select, name='coursework_shortcut'),
-    #path('ministry/register/', views.ministry_register, name='ministry_register_all'),
-    #path('ministry/register/<str:grade>/', views.ministry_register, name='ministry_register'),
-    #path('register/official/<str:grade>/', views.official_register_docx, name='official_register_docx'),
+    path('school/student/<int:student_id>/coursework-weekly/', views.school_coursework_weekly, name='school_coursework_weekly'),
     path('register/', views.school_register, name='school_register'),
     path('register/excel/<str:grade>/<str:year>/<str:term>/', views.official_register_excel,
          name='official_register_excel'),

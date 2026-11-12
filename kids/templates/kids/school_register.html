@@ -25,7 +25,7 @@
 
   <div style="background:#BDD7EE; padding:15px 25px; border-radius:8px; text-align:center; min-width:150px;">
     <div style="font-size:12px;">Total Present / Enrolment</div>
-    <div style="font-size:28px; font-weight:bold;">{{ today_possible }} / {{ total_enrolment }}</div>
+    <div style="font-size:28px; font-weight:bold;">{{ today_present }} / {{ total_enrolment }}</div>
   </div>
 
 </div>
@@ -42,8 +42,8 @@
     <tr>
       <td>{{ cl.grade }}</td>
       <td style="text-align:center;">{{ cl.enrol }}</td>
-      <td style="text-align:center; font-weight:bold; color:green;">{{ cl.present }}</td>
-      <td style="text-align:center;">{% if cl.enrol %}{{ cl.present }} / {{ cl.enrol }}{% endif %}</td>
+      <td style="text-align:center; font-weight:bold; color:green;">{% if not cl.marked_today %} — {% else %}{{ cl.present }}{% endif %}</td>
+      <td style="text-align:center;">{% if cl.enrol %}{% if not cl.marked_today %} — {% else %}{{ cl.present }}{% endif %} / {{ cl.enrol }}{% endif %}</td>
     </tr>
     {% endfor %}
   </table>
@@ -86,7 +86,7 @@
     </a>
     <a href="{% url 'class_register' grade %}"{{ grade }}/?year={{ year }}&term={{ term }}"
        style="padding:12px 25px; background:#2F5597; color:white; text-decoration:none; font-weight:bold; margin:5px; border-radius:4px; display:inline-block;">
-       📝 Mark Daily Attendance
+       📝 Mark Register / Generate Report Card
     </a>
   </div>
 

@@ -18,18 +18,19 @@
 <ol>
    <li><a href="{% url 'school_fees' %}">Admission Form</a></li>
    <li><a href="{% url 'school_register' %}">School & Class Registers</a></li>
-   <li><a href="{% url 'report_cards' %}">Marksheets & Reports Cards</a></li>
-    <li><a href="{% url 'record_books_class_select' %}">Record of Marks & Course
-Work</a></li>
+    <li><a href="{% url 'record_books_class_select' %}">Course Work & Record of Marks</a></li>
     <li><a href="{% url 'sports_class_select' %}">Sporting Activities</a></li> <!-- NEW -->
+   <li><a href="{% url 'report_cards' %}">Marksheets & Reports Commenting</a></li>
+    <li><a href="{% url 'head_supervision' %}">Supervision</a></li>
 </ol>
 
 </ul>
-    <a href="{% url 'school_register' %}"><button>School & Class Registers</button></a>
     <a href="{% url 'school_fees' %}"><button>Admission Form</button></a>
-    <a href="{% url 'record_books_class_select' %}"><button>Record of Marks & Course Work</button></a>
-    <a href="{% url 'report_cards' %}"><button>Marksheets & Report Cards</button></a>
+    <a href="{% url 'school_register' %}"><button>School & Class Registers</button></a>
+    <a href="{% url 'record_books_class_select' %}"><button>Course Work & Record of Marks</button></a>
     <a href="{% url 'sports_class_select' %}"><button>Sporting Activities</button></a> <!-- NEW -->
+    <a href="{% url 'report_cards' %}"><button>Marksheets & Reports Commenting</button></a>
+    <a href="{% url 'head_supervision' %}"><button>Supervision</button></a>
 </body>
 </html>
 

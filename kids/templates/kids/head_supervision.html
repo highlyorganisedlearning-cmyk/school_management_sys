@@ -1,8 +1,9 @@
+
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
 <div class="container">
-<h1>Class Register: {{ grade }}</h1>
+
 <a href="{% url 'school_register' %}">Back to School Register</a>
 
 <h1>Head Supervision Engine - {{ today }} | {{ current_term }} Week {{ current_week }}</h1>

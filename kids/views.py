@@ -9,7 +9,7 @@ from .models import HeadComment
 from kids.models import AcademicWeek,  Term
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
-from .models import StudentTermResult, StudentParent
+from .models import StudentTermResult, StudentParent, CourseWorkMarkSheet
 from django.utils import timezone
 import io
 import os
@@ -36,7 +36,8 @@ def is_student_active_in_subject(student, subject):
 if os.path.exists(r"C:\school_management_sys"):
     BASE_KIDS = Path(r"C:\school_management_sys\kids")
 else:
-    BASE_KIDS = Path("/opt/school/kids")  # our droplet path
+    BASE_KIDS = Path(settings.BASE_DIR) / "kids"
+
 
 
 def get_student_photo_path(form_or_grade, adm_no):
@@ -151,83 +152,62 @@ def school_fees(request):
 
 
 def school_register(request):
-    grade = request.GET.get('grade', 'FORM 3A')
+    grade = request.GET.get('grade', 'Form 3A')
     year = request.GET.get('year', '2026')
     term = request.GET.get('term', '3')
 
     # 1. Classes from Student table - dynamic
     all_classes = Student.objects.values_list('grade', flat=True).distinct().order_by('grade')
     if not all_classes:
-        all_classes = ['FORM 1A', 'FORM 1B', 'FORM 2A', 'FORM 3A', 'FORM 4A']
+        all_classes = ['Form 1A', 'Form 1B', 'Form 2A', 'Form 3A', 'Form 4A']
 
     # 2. FIX: Years from start_date year - NOT from 'year' field
     # Your Term model has start_date, end_date, name
-    try:
-        from .models import Term
-        terms_qs = Term.objects.all()
-        # Get years from start_date
-        all_years = sorted(set([t.start_date.year for t in terms_qs if t.start_date]), reverse=True)
-        if not all_years:
-            all_years = [2024, 2025, 2026]
-
-        all_terms_objs = terms_qs.order_by('start_date')
-        # Build term list like Term 1, Term 2, Term 3 from name
-        all_terms = ['1', '2', '3']  # keep simple for now
-
-        # Find current term based on year and term number
-        term_obj = None
-        for t in terms_qs:
-            if str(t.start_date.year) == str(year) and term in t.name:
-                term_obj = t
-                break
-        if not term_obj:
-            term_obj = terms_qs.filter(is_current=True).first()
-    except Exception as e:
-        print(f"Term error: {e}")
+    terms_qs = Term.objects.all()
+    all_years = sorted(set([t.start_date.year for t in terms_qs if t.start_date]), reverse=True)
+    if not all_years:
         all_years = [2024, 2025, 2026]
-        all_terms = ['1', '2', '3']
-        term_obj = None
+    all_terms = ['1', '2', '3']
 
-    # Term label
-    if term_obj:
-        term_label = f"{term_obj.start_date.strftime('%d %b %Y')} to {term_obj.end_date.strftime('%d %b %Y')} ({term_obj.name})"
-        term_start = term_obj.start_date
-        term_end = term_obj.end_date
-    else:
-        # Fallback Term 3 2026 - 08 Sep to 05 Dec
-        term_start = date(int(year), 9, 8) if term == '3' else date(int(year), 5, 5) if term == '2' else date(int(year),
-                                                                                                              1, 10)
-        term_end = date(int(year), 12, 5) if term == '3' else date(int(year), 8, 2) if term == '2' else date(int(year),
-                                                                                                             4, 5)
-        term_label = f"{term_start.strftime('%d %b %Y')} to {term_end.strftime('%d %b %Y')} (64 Days - 14 Weeks Mon-Fri)"
+    term_obj = Term.objects.filter(name__icontains=f"Term {term} {year}").first()
+    if not term_obj:
+        term_obj = Term.objects.filter(is_current=True).first()
+
+    term_start = term_obj.start_date
+    term_end = term_obj.end_date
+    term_label = f"{term_start.strftime('%d %b %Y')} to {term_end.strftime('%d %b %Y')} ({term_obj.name})"
 
     students_qs = Student.objects.filter(grade=grade).order_by('last_name')
+    school_dates = []
+    d = term_start
+    while d <= term_end:
+        if d.weekday() < 5:  # Mon-Fri only
+            school_dates.append(d)
+        d += timedelta(days=1)
+
     for s in students_qs:
-        s.present_count = Attendance.objects.filter(student=s, date__year=int(year),
-                                                    status='Present').count() if year.isdigit() else 0
-        s.absent_count = Attendance.objects.filter(student=s, date__year=int(year),
-                                                   status='Absent').count() if year.isdigit() else 0
-        s.sick_count = Attendance.objects.filter(student=s, date__year=int(year),
-                                                 status='Sick').count() if year.isdigit() else 0
+        qs = Attendance.objects.filter(student=s, date__in=school_dates)
+
+        s.present_count = qs.filter(status__in=['Present', 'Late']).count()
+        s.absent_count = qs.filter(status__in=['Absent']).count()
+        s.sick_count = qs.filter(status='Sick').count()
         s.total_days = s.present_count + s.absent_count + s.sick_count
 
     today = date.today()  # or timezone.now().date()
-
-    # LIVE SCHOOL TOTALS - TODAY
     total_enrolment = Student.objects.count()
-    today_present = Attendance.objects.filter(date=today, status='Present').count()
+    today_present = Attendance.objects.filter(date=today, status__in=['Present', 'Late']).count()
     today_absent = Attendance.objects.filter(date=today, status='Absent').count()
     today_sick = Attendance.objects.filter(date=today, status='Sick').count()
-    today_possible = today_present + today_absent + today_sick
+    today_possible = total_enrolment
     attendance_rate = round((today_present / today_possible * 100) if today_possible else 0, 1)
 
     # Per class live today
     classes_live = []
     for g in all_classes:
         enrol = Student.objects.filter(grade=g).count()
-        pres = Attendance.objects.filter(date=today, student__grade=g, status='Present').count()
-        classes_live.append({'grade': g, 'enrol': enrol, 'present': pres})
-
+        marked_today = Attendance.objects.filter(date=today, grade=g).exists()
+        pres = Attendance.objects.filter(date=today, grade=g, status__in=['Present', 'Late']).count()
+        classes_live.append({'grade': g, 'enrol': enrol, 'present': pres, 'marked_today': marked_today})
 
     context = {
         'today': today,
@@ -254,23 +234,25 @@ def school_register(request):
 
 
 def class_register(request, grade):
+
     today = date.today()
     students = Student.objects.filter(grade=grade).order_by('last_name')
 
-    # Get today's attendance records for this grade
     attendance_today = {a.student_id: a.status for a in Attendance.objects.filter(grade=grade, date=today)}
 
+
     if request.method == 'POST':
-        # Clear today's records for this grade first, then re-save
         Attendance.objects.filter(grade=grade, date=today).delete()
 
         for student in students:
-            status = request.POST.get(f'status_{student.id}', 'Absent')  # get status from radio buttons
-            Attendance.objects.create(student=student, grade=grade, status=status, date=today)
+            status = request.POST.get(f'status_{student.id}', 'Absent')
+            # Remove date=today from here because your model auto adds it
+            # Or fix model: change auto_now_add to default=date.today
+            Attendance.objects.create(student=student, grade=grade, status=status)
 
+        # After SAVE, go to Ministry Register for same grade - this proves link
         return redirect('class_register', grade=grade)
 
-    # Stats for header
     present_count = list(attendance_today.values()).count('Present')
     sick_count = list(attendance_today.values()).count('Sick')
     absent_count = list(attendance_today.values()).count('Absent')
@@ -278,7 +260,7 @@ def class_register(request, grade):
     context = {
         'grade': grade,
         'students': students,
-        'attendance_today': attendance_today,  # dict {student_id: status}
+        'attendance_today': attendance_today,
         'today': today,
         'total': students.count(),
         'present_count': present_count,
@@ -286,41 +268,6 @@ def class_register(request, grade):
         'absent_count': absent_count,
     }
     return render(request, 'kids/class_register.html', context)
-
-#def class_register(request, grade):
-#    today = date.today()
-#    students = Student.objects.filter(grade=grade).order_by('last_name')
-
-#    # Get today's attendance records for this grade
-#    attendance_today = {a.student_id: a.status for a in Attendance.objects.filter(grade=grade, date=today)}
-
-#    if request.method == 'POST':
-#        # Clear today's records for this grade first, then re-save
-#        Attendance.objects.filter(grade=grade, date=today).delete()
-
-#        for student in students:
-#            status = request.POST.get(f'status_{student.id}', 'Absent')  # get status from radio buttons
-#            Attendance.objects.create(student=student, grade=grade, status=status, date=today)
-
-#        return redirect('class_register', grade=grade)
-
-#    # Stats for header
-#    present_count = list(attendance_today.values()).count('Present')
-#    sick_count = list(attendance_today.values()).count('Sick')
-#    absent_count = list(attendance_today.values()).count('Absent')
-
-#    context = {
-#        'grade': grade,
-#        'students': students,
-#        'attendance_today': attendance_today,  # dict {student_id: status}
-#        'today': today,
-#        'total': students.count(),
-#        'present_count': present_count,
-#        'sick_count': sick_count,
-#        'absent_count': absent_count,
-#    }
-#    return render(request, 'kids/class_register.html', context)
-
 
 @login_required
 def add_student(request):
@@ -1040,7 +987,7 @@ def subject_teacher_comments(request, student_id, term_id, subject_id):
             "Performance maintained at same level.",
             "Steady progress observed. Keep it up.",
             "Consistent performance.",
-            "Hausi kuchinja"
+
         ],
         # Negative - Drop
         "N1": ["Slight drop noted. Needs more focus.", "Performance slipped slightly.",
@@ -1182,9 +1129,18 @@ def master_marksheet(request, grade):
         avg = float(total) / subject_count if subject_count > 0 else 0
 
         # 3. ATTENDANCE - BLUE WIRE
-        #possible_dates = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end).values('date').distinct().count()
-        possible_dates = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end, status__in=['Present', 'Absent', 'Sick', ]).count()
-        present_days = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end, status__in=['Present']).count()
+
+        p = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end,
+                                      status='Present').values('date').distinct().count()
+        l = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end, status='Late').values(
+            'date').distinct().count()
+        a = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end,
+                                      status='Absent').values('date').distinct().count()
+        s = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end, status='Sick').values(
+            'date').distinct().count()
+
+        present_days = p
+        possible_dates = p + a + s
 
         # 4. PINK WIRE 1: SUBJECTS PASSED
         subjects_passed_count = 0
@@ -1230,22 +1186,26 @@ def master_marksheet(request, grade):
     }
     return render(request, 'kids/master_marksheet.html', context)
 
+from pathlib import Path
+
+from django.http import Http404
+
+
+
 def download_report_card(request, student_id, term):
     student = get_object_or_404(Student, pk=student_id)
 
-    marks = Mark.objects.filter(student=student, term=term).select_related('subject').order_by('subject__name')
-    term = Term.objects.filter(is_current=True).first()
-    term_name = term.name if term else 'Term 3'
-    #term_name = term_obj.name if term_obj else term
-
-    #/term_year = term.start_date.year if term and term.start_date else date.today().year
-    term_obj = Term.objects.filter(name=term).first() or Term.objects.filter(is_current=True).first()
+    # Keep 3 names separate, never overwrite each other
+    term_param = str(term)  # "Term 3" from URL
+    term_obj = Term.objects.filter(name=term_param).first() or Term.objects.filter(is_current=True).first()
+    term_name = term_obj.name if term_obj else 'Term 3'
     term_year = term_obj.start_date.year if term_obj and term_obj.start_date else date.today().year
+
     marks_qs = Mark.objects.filter(student=student, term=term_name).select_related('subject').order_by('subject__order')
     m_list = list(marks_qs)
 
     #result = StudentTermResult.objects.filter(student=student, term=term_name, year=term_year).first()
-    result = StudentTermResult.objects.filter(student=student, term=term).first()
+    result = StudentTermResult.objects.filter(student=student, term=term_name, year=term_year).first()
     parent_qs = StudentParent.objects.filter(student=student).first()
     parent = parent_qs.parent if parent_qs else None
 
@@ -1267,19 +1227,14 @@ def download_report_card(request, student_id, term):
         'tennis': 'Tennis', 'hockey': 'Hockey', 'athletics': 'Athletics',
         'high_jump': 'HighJ', 'triple_jump': 'TripJ', 'javelin': 'Javelin',
         'shot_put': 'ShotPut', 'hop_step_jump': 'HSJ', 'swimming': 'Swim'
-    }
-
-
-    # Tray - same order as your card: 4005 English, 4007 Shona, etc
-    # We make it safe - if Shona is row 2, it stays row 2
-    m_list = list(marks) # 0=English, 1=Shona...
+        }
 
     rank_list = []
     for s in students_in_grade:
-        marks_qs = Mark.objects.filter(student=s, term=term)
+        marks_qs = Mark.objects.filter(student=s, term=term_name)
         total = sum([m.current_avg or 0 for m in marks_qs])
         avg = total / subject_count if subject_count else 0
-        rank_list.append({'sid': s.id, 'avg': avg, 'total': total})
+    rank_list.append({'sid': s.id, 'avg': avg, 'total': total})
 
     rank_list.sort(key=lambda x: x['avg'], reverse=True)
     # build position map
@@ -1301,7 +1256,7 @@ def download_report_card(request, student_id, term):
     total_students = students_in_grade.count()
 
     # Marks ordered by subject order, not name — to match card tray 1-16
-    marks = Mark.objects.filter(student=student, term=term).select_related('subject').order_by('subject__order')
+    marks = Mark.objects.filter(student=student, term=term_name).select_related('subject').order_by('subject__order')
     m_list = list(marks)
 
     def get_mark(index, field_name):
@@ -1312,14 +1267,20 @@ def download_report_card(request, student_id, term):
     # attendance same as master
     term_start = term_obj.start_date if term_obj else date.today()
     term_end = term_obj.end_date if term_obj else date.today()
-    possible_dates = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end).values(
-        'date').distinct().count()
-    present_days = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end,
-                                             status__in=['Present', 'Sick']).count()
-    subjects_passed = sum(1 for m in m_list if getattr(m, 'current_grade', '') in ['A', 'B', 'C'])
 
-    template_path = 'C:/school_management_sys/kids/templates/word/Report_card_template.docx'
-    doc = DocxTemplate(template_path)
+    p = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end,
+                                  status='Present').values('date').distinct().count()
+    l = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end, status='Late').values(
+        'date').distinct().count()
+    a = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end,
+                                  status='Absent').values('date').distinct().count()
+    s = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end, status='Sick').values(
+        'date').distinct().count()
+
+    possible_dates = p + a + s
+    present_days = p
+
+    subjects_passed = sum(1 for m in m_list if getattr(m, 'current_grade', '') in ['A', 'B', 'C'])
 
 
     position = ''
@@ -1327,7 +1288,7 @@ def download_report_card(request, student_id, term):
     if result:
         # same class, same term, same year
         class_results = StudentTermResult.objects.filter(
-            grade=student.grade, term=term, year=result.year
+            grade=student.grade, term=term_name, year=result.year
         ).order_by('-total_marks')
 
         total_students = str(class_results.count())
@@ -1357,9 +1318,23 @@ def download_report_card(request, student_id, term):
     is_a_level = any(k in grade_str for k in ['5', '6', 'A-LEVEL', 'LOWER', 'UPPER'])
 
     if is_a_level or request.GET.get('template') == '2':
-        template_path = 'C:/school_management_sys/kids/templates/word/Report_card_template_A_LEVEL.docx'
+        filename = 'Report_card_template_A_LEVEL.docx'
     else:
-        template_path = 'C:/school_management_sys/kids/templates/word/Report_card_template.docx'
+        filename = 'Report_card_template.docx'
+
+    # 1. Try inside project - WORKS ON CLOUD
+    template_path = Path(settings.BASE_DIR) / 'kids' / 'templates' / 'word' / filename
+
+    # 2. Fallback to your laptop path - WORKS ON LAPTOP
+    if not template_path.exists():
+        laptop_path = Path(f'C:/school_management_sys/kids/templates/word/{filename}')
+        if laptop_path.exists():
+            template_path = laptop_path
+
+    if not template_path.exists():
+        raise Http404(f"Template not found: {filename} - put it in kids/templates/word/")
+
+    doc = DocxTemplate(str(template_path))
 
     def get_mark(index, field_name):
         if index < len(m_list):
@@ -1367,15 +1342,18 @@ def download_report_card(request, student_id, term):
         return ''
 
     def get_image_for_template(image_path, width=1.3):
-        if image_path and image_path.exists():
-            return InlineImage(doc, str(image_path), width=Inches(width))
+        if not image_path:
+            return ""
+        p = Path(str(image_path))
+        if p.exists():
+            return InlineImage(doc, str(p), width=Inches(width))
         return ""
 
     photo_path = get_student_photo_path(student.grade, student.adm_no)
     stamp_path = get_stamp_path()
 
-    print(f"[PHOTO CHECK] {photo_path} exists={photo_path.exists()}")
-    print(f"[STAMP CHECK] {stamp_path} exists={stamp_path.exists()}")
+    print(f"[PHOTO CHECK] {photo_path} exists={Path(str(photo_path)).exists() if photo_path else False}")
+    print(f"[STAMP CHECK] {stamp_path} exists={Path(str(stamp_path)).exists() if stamp_path else False}")
 
     context = {
         # 1 to 15 - HEADER - WHERE MASTER STORED IT
@@ -1385,7 +1363,7 @@ def download_report_card(request, student_id, term):
         'birth_certificate_no': getattr(student, 'birth_cert_no', ''),
         'DOB': student.date_of_birth.strftime('%d/%m/%Y') if student.date_of_birth else '',
         'FORM': str(student.grade),
-        'term': term,
+        'term': term_name,
         'year': str(term_year),
         'grade': str(student.grade),
         'position': str(correct_position), # <-- FROM MASTER LOGIC
@@ -1594,12 +1572,53 @@ def parent_coursework_weekly(request, student_id):
         student=student, is_active=False
     ).values_list('subject_id', flat=True))
 
-    # Get weeks
+    today = date.today()  # Today 10 Nov 2026 = Week 11
+
+    # 1. Find ONLY current week
+    current_week = AcademicWeek.objects.filter(
+        start_date__lte=today,
+        end_date__gte=today
+    ).order_by('week_number').first()
+
+    # If today is holiday / outside term, show last week that already started
+    if not current_week:
+        current_week = AcademicWeek.objects.filter(
+            start_date__lte=today
+        ).order_by('-week_number').first()
+
+    weekly_data = {}
+
+    if current_week:
+        scores = CourseWorkScore.objects.filter(
+            marksheet__week=current_week,
+            student=student
+        ).exclude(
+            marksheet__subject_id__in=excluded_ids
+        ).select_related('marksheet__subject')
+
+        # Show current week EVEN if empty, so parent sees the table, not blank page
+        weekly_data[current_week] = scores
+
+    return render(request, 'parent/coursework_weekly.html', {
+        'student': student,
+        'weekly_data': weekly_data,
+        'current_week': current_week,
+    })
+
+
+
+def school_coursework_weekly(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+
+    excluded_ids = list(SubjectEnrollment.objects.filter(
+        student=student, is_active=False
+    ).values_list('subject_id', flat=True))
+
+    # School sees ALL weeks
     weeks = AcademicWeek.objects.all().order_by('week_number')
     weekly_data = {}
 
     for week in weeks:
-        # Filter out excluded subjects HERE
         scores = CourseWorkScore.objects.filter(
             marksheet__week=week,
             student=student
@@ -1607,10 +1626,10 @@ def parent_coursework_weekly(request, student_id):
             marksheet__subject_id__in=excluded_ids
         ).select_related('marksheet__subject')
 
-        if scores.exists():  # Only show weeks where child has active subjects
+        if scores.exists():
             weekly_data[week] = scores
 
-    return render(request, 'parent/coursework_weekly.html', {
+    return render(request, 'school/coursework_weekly.html', {
         'student': student,
         'weekly_data': weekly_data
     })
@@ -1821,52 +1840,37 @@ from openpyxl.utils import get_column_letter
 from django.http import HttpResponse
 
 def official_register_excel(request, grade="FORM 3A", year="2026", term="3"):
-    # === FIX: Use your real Term fields - name, start_date, end_date ===
-    term_start = None
-    term_end = None
-    term_name = f"Term {term} {year}"
+    from .models import Term
+    term_obj = None
+    # 1. If term="current" -> use Admin is_current
+    # 2. Else use Term from URL -> "Term 3 2026"
+    # 3. Else use Admin is_current
+    if str(term).lower() == "current":
+        term_obj = Term.objects.filter(is_current=True).first()
+    else:
+        term_obj = Term.objects.filter(name__icontains=f"Term {term} {year}").first()
+        if not term_obj:
+            term_obj = Term.objects.filter(name__icontains=f"Term {term}").first()
+    if not term_obj:
+        term_obj = Term.objects.filter(is_current=True).first()
 
-    try:
-        from .models import Term
-        terms_qs = Term.objects.all()
-        # Find term where name contains term number and start_date year = year
-        for t in terms_qs:
-            if t.start_date and str(t.start_date.year) == str(year) and str(term) in t.name:
-                term_start = t.start_date
-                term_end = t.end_date
-                term_name = t.name
-                break
+    term_start = term_obj.start_date
+    term_end = term_obj.end_date
+    term_name = term_obj.name
 
-        # If not found, use current term
-        if not term_start:
-            cur = terms_qs.filter(is_current=True).first()
-            if cur and cur.start_date:
-                term_start = cur.start_date
-                term_end = cur.end_date
-                term_name = cur.name
-    except Exception as e:
-        print(f"Term lookup error: {e}")
-
-    # Fallback if still no term - Term 3 2026 = 08 Sep to 05 Dec
-    if not term_start:
-        y = int(year) if str(year).isdigit() else 2026
-        if str(term) == '3':
-            term_start = date(y, 9, 8)
-            term_end = date(y, 12, 5)
-        elif str(term) == '2':
-            term_start = date(y, 5, 5)
-            term_end = date(y, 8, 2)
-        else:
-            term_start = date(y, 1, 10)
-            term_end = date(y, 4, 5)
-
-    # Generate 64 days Mon-Fri from term_start
+    # All Mon-Fri in Admin term, NO 64 cap, NO fallback dates
     dates = []
     d = term_start
-    while d <= term_end and len(dates) < 64:
+    while d <= term_end:
         if d.weekday() < 5:
             dates.append(d)
         d += timedelta(days=1)
+
+    num_days = len(dates)
+    num_weeks = (num_days + 4) // 5
+    weekdays = [dt.strftime("%a") for dt in dates]
+    date_labels = [dt.strftime("%d/%m") for dt in dates]
+
 
     num_days = len(dates)
     weekdays = [dt.strftime("%a") for dt in dates]
@@ -1890,14 +1894,13 @@ def official_register_excel(request, grade="FORM 3A", year="2026", term="3"):
         ws['B1'] = "Ministry of Primary and Secondary Education"
         ws['B2'] = f"School: __________ District: __________ Province: __________"
         ws['B3'] = f"Form: {grade} Year: {year} {term_name} Teacher: __________"
-        ws[
-            'B4'] = f"{title} - {term_name} - {num_days} DAYS (14 WEEKS) - {term_start.strftime('%d %b %Y')} to {term_end.strftime('%d %b %Y')}"
+        ws['B4'] = f"{title} - {term_name} - {num_days} DAYS ({num_weeks} WEEKS) - {term_start.strftime('%d %b %Y')} to {term_end.strftime('%d %b %Y')}"
 
         for r in [1, 2, 3, 4]:
             ws.cell(row=r, column=2).font = Font(bold=True, size=10)
 
         # Weeks
-        for w in range(1, 15):
+        for w in range(1, num_weeks + 1):
             col = 4 + (w - 1) * 5
             if col <= 3 + num_days:
                 ws.cell(row=5, column=col).value = f"WEEK {w}"
@@ -2002,3 +2005,5 @@ def official_register_excel(request, grade="FORM 3A", year="2026", term="3"):
     response['Content-Disposition'] = f'attachment; filename={grade}_{year}_Term{term}_BALANCED.xlsx'
     wb.save(response)
     return response
+
+

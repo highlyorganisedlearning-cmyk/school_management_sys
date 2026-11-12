@@ -22,7 +22,7 @@
         {% with current_status=attendance_today|dict_get:student.id %}
         <tr>
             <td style="text-align:center;">
-            <a href="{% url 'download_report_card' student.id 'Term 1' %}" class="btn btn-primary btn-sm">
+            <a href="{% url 'download_report_card' student.id 'Term 3' %}" class="btn btn-primary btn-sm">
             Generate Report
             </a>
             <td style="text-align:center;">{{ student.adm_no }}</td>
@@ -35,6 +35,13 @@
         {% endwith %}
         {% endfor %}
     </table>
+
+    {% if today_weekday < 5 %}
+  <button type="submit">Save Register</button>
+{% else %}
+  <p>Weekend - Register Closed</p>
+{% endif %}
+
       <button type="submit">Save Attendance for {{ today }}</button>
 </form>
 </div>
