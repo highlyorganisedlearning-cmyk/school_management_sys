@@ -8,5 +8,5 @@ urlpatterns = [
     path('record-books/marksheet/<int:subject_id>/<int:week_id>/', views.coursework_marksheet, name='coursework_marksheet'),
     path('toggle-enroll/<int:student_id>/<int:subject_id>/', views.toggle_enrollment, name='toggle_enrollment'),
     path('exclude-class/', views.exclude_whole_class, name='exclude_whole_class'),
-    #path('coursework/term-summary/', views.coursework_term_summary, name='coursework_term_summary'),
+
    ]

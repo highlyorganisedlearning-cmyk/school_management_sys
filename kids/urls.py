@@ -34,7 +34,6 @@ urlpatterns = [
     path('sports/<str:grade>/', views.sports_class_list, name='sports_class_list'),
     path('subject-comments/<int:student_id>/<int:term_id>/<int:subject_id>/',login_required(views.subject_teacher_comments), name='subject_teacher_comments'),
     path('head/supervision/', views.head_supervision_engine, name='head_supervision'),
-   # path('coursework/term-summary/', views.coursework_term_summary, name='coursework_term_summary'),
     path('class/<str:grade>/', views.class_register, name='class_register'),
     path('class/<str:grade>/master/', views.class_master_marksheet, name='class_master_marksheet'), # ADD THIS
     path('coursework/<int:subject_id>/', views.record_books_week_select, name='coursework_shortcut'), # ADD THIS for V11
