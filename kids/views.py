@@ -1234,14 +1234,14 @@ def download_report_card(request, student_id, term):
         marks_qs = Mark.objects.filter(student=s, term=term_name)
         total = sum([m.current_avg or 0 for m in marks_qs])
         avg = total / subject_count if subject_count else 0
-    rank_list.append({'sid': s.id, 'avg': avg, 'total': total})
+        rank_list.append({'sid': s.id, 'avg': avg, 'total': total})
 
-    rank_list.sort(key=lambda x: x['avg'], reverse=True)
-    # build position map
-    position_map = {}
-    total_map = {}
-    avg_map = {}
-    rank = 0
+        rank_list.sort(key=lambda x: x['avg'], reverse=True)
+        # build position map
+        position_map = {}
+        total_map = {}
+        avg_map = {}
+        rank = 0
     for i, item in enumerate(rank_list):
         if i == 0 or item['avg'] != rank_list[i - 1]['avg']:
             rank = i + 1
@@ -1318,9 +1318,9 @@ def download_report_card(request, student_id, term):
     is_a_level = any(k in grade_str for k in ['5', '6', 'A-LEVEL', 'LOWER', 'UPPER'])
 
     if is_a_level or request.GET.get('template') == '2':
-        filename = 'Report_card_template_A_LEVEL.docx'
+        filename = 'report_card_template_A_LEVEL.docx'
     else:
-        filename = 'Report_card_template.docx'
+        filename = 'report_card_template.docx'
 
     # 1. Try inside project - WORKS ON CLOUD
     template_path = Path(settings.BASE_DIR) / 'kids' / 'templates' / 'word' / filename
@@ -1604,8 +1604,6 @@ def parent_coursework_weekly(request, student_id):
         'weekly_data': weekly_data,
         'current_week': current_week,
     })
-
-
 
 def school_coursework_weekly(request, student_id):
     student = get_object_or_404(Student, id=student_id)
