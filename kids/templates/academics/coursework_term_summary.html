@@ -1,0 +1,74 @@
+{% extends 'academics/base.html' %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<form method="get" class="d-flex gap-2 mb-3">
+  <label>Year</label>
+  <select name="year">
+    {% for y in all_years %}
+      <option value="{{ y }}" {% if y|stringformat:"s" == year %}selected{% endif %}>{{ y }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Term</label>
+  <select name="term">
+    {% for t in all_terms %}
+      <option value="{{ t }}" {% if t == term_name %}selected{% endif %}>{{ t }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Class</label>
+  <select name="grade" onchange="this.form.submit()">
+    {% for g in all_grades %}
+      <option value="{{ g }}" {% if g == grade %}selected{% endif %}>{{ g }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Subject</label>
+  <select name="subject">
+    {% for s in all_subjects %}
+      <option value="{{ s }}" {% if s == subject_name %}selected{% endif %}>{{ s }}</option>
+    {% endfor %}
+  </select>
+
+  <button type="submit" class="btn btn-success">View</button>
+</form>
+
+{% for w in weeks_data %}
+<div class="week-page">
+  <table>
+    <tr><th colspan="11">{{ subject_name }} {{ grade }} {{ term_name }} {{ year }}</th></tr>
+    <tr><th>Dates</th><th></th>{% for t in w.tasks %}<th>{{ t.date|date:"d M" }}</th>{% endfor %}</tr>
+    <tr><th>Week {{ w.week_no }}</th><th></th>{% for t in w.tasks %}<th>{{ t.label }}</th>{% endfor %}</tr>
+    <tr><th>Students</th><th>Adm no</th>{% for t in w.tasks %}<th></th>{% endfor %}</tr>
+    {% for r in w.rows %}
+    <tr><td>{{ r.student.last_name }} {{ r.student.first_name }}</td><td>{{ r.student.adm_no }}</td>
+    {% for c in r.cells %}<td>{{ c }}</td>{% endfor %}</tr>
+        {% endfor %}
+  </table>
+</div>
+{% endfor %}
+{% if not weeks_data %}
+  <div style="background:#fff3cd; padding:20px; border-radius:8px; text-align:center;">
+    <h4>Sorry Boss, no coursework found here Boss.</h4>
+    <p>No sheets for <b>{{ subject_name }} - {{ grade }} - {{ term_name }} {{ year }}</b>.</p>
+    <p>Please try another Class or Subject from the list above Cap. Those lists only show what really exists Cap.</p>
+    <p>🌟 BFG does not drink tea, only frobscottle Boss. We only serve what we have Boss. 🌟</p>
+  </div>
+{% else %}
+
+  {% for week in weeks_data %}
+    ...
+  {% endfor %}
+{% endif %}
+
+<style>
+@media print {
+  .week-page { page-break-after: always; }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  th, td { border: 1px solid #000; padding: 3px; }
+}
+</style>
+{% endblock %}

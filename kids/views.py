@@ -18,7 +18,8 @@ from docx.shared import Inches
 from .models import StudentActivity, SubjectEnrollment
 from pathlib import Path
 from docxtpl import DocxTemplate, InlineImage
-
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
 
 def get_active_subject_ids_for_student(student):
     """Return list of subject IDs where student is NOT excluded"""
@@ -66,10 +67,11 @@ def get_stamp_path():
 def dict_get(d, k):
     return d.get(k)
 
-
+@login_required
 def main_menu(request):
     return render(request, 'kids/main_menu.html')
 
+@login_required
 def school_fees(request):
     if request.method == 'POST':
         if 'add_payment' in request.POST:
@@ -150,7 +152,7 @@ def school_fees(request):
     }
     return render(request, 'kids/school_fees.html', context)
 
-
+@login_required
 def school_register(request):
     grade = request.GET.get('grade', 'Form 3A')
     year = request.GET.get('year', '2026')
@@ -232,42 +234,64 @@ def school_register(request):
     }
     return render(request, 'kids/school_register.html', context)
 
-
+@login_required
 def class_register(request, grade):
+    # Date picker Cap - ?date=2026-11-13, default today Cap
+    date_str = request.GET.get('date') or request.POST.get('selected_date')
+    try:
+        selected_date = date.fromisoformat(date_str) if date_str else date.today()
+    except ValueError:
+        selected_date = date.today()
 
     today = date.today()
+    is_weekend = selected_date.weekday() >= 5
+    is_future = selected_date > today
+    is_today = selected_date == today
+
     students = Student.objects.filter(grade=grade).order_by('last_name')
-
-    attendance_today = {a.student_id: a.status for a in Attendance.objects.filter(grade=grade, date=today)}
-
+    attendance_for_day = {a.student_id: a.status for a in Attendance.objects.filter(grade=grade, date=selected_date)}
 
     if request.method == 'POST':
-        Attendance.objects.filter(grade=grade, date=today).delete()
+        if is_weekend or is_future:
+            messages.error(request, "Cannot mark weekend or future date Cap.")
+            return redirect(f"{request.path}?date={selected_date}")
 
+        Attendance.objects.filter(grade=grade, date=selected_date).delete()
         for student in students:
             status = request.POST.get(f'status_{student.id}', 'Absent')
-            # Remove date=today from here because your model auto adds it
-            # Or fix model: change auto_now_add to default=date.today
-            Attendance.objects.create(student=student, grade=grade, status=status)
+            Attendance.objects.create(student=student, grade=grade, status=status, date=selected_date)
 
-        # After SAVE, go to Ministry Register for same grade - this proves link
-        return redirect('class_register', grade=grade)
+        if is_today:
+            messages.success(request, f"Saved register for today Cap.")
+        else:
+            messages.success(request, f"Corrected register for {selected_date} Cap.")
+        return redirect(f"{request.path}?date={selected_date}")
 
-    present_count = list(attendance_today.values()).count('Present')
-    sick_count = list(attendance_today.values()).count('Sick')
-    absent_count = list(attendance_today.values()).count('Absent')
+    present_count = list(attendance_for_day.values()).count('Present')
+    sick_count = list(attendance_for_day.values()).count('Sick')
+    absent_count = list(attendance_for_day.values()).count('Absent')
+    # Late Cap, if you use it Cap
+    late_count = list(attendance_for_day.values()).count('Late')
 
     context = {
         'grade': grade,
         'students': students,
-        'attendance_today': attendance_today,
-        'today': today,
+        'attendance_today': attendance_for_day,
+        'today': selected_date,  # template uses {{ today }} Cap, keep name Cap
+        'real_today': today,
+        'selected_date': selected_date,
+        'is_weekend': is_weekend,
+        'is_future': is_future,
+        'is_today': is_today,
         'total': students.count(),
         'present_count': present_count,
         'sick_count': sick_count,
         'absent_count': absent_count,
+        'late_count': late_count,
     }
     return render(request, 'kids/class_register.html', context)
+
+
 
 @login_required
 def add_student(request):
@@ -447,7 +471,7 @@ def marksheet(request, grade, subject_id):
 
     })
 
-
+@login_required
 def generate_professional_reports(request, grade, grade_letter=None):
     # 1. Setup Paths
     desktop = os.path.join(os.path.expanduser("~"), "Desktop")
@@ -819,6 +843,7 @@ def get_remark_data(trend):
             return group, options
     return None, []
 
+@login_required
 def enter_marks(request, term_id, subject_id):
     students = Student.objects.filter(is_active=True)
     term = Term.objects.get(id=term_id)
@@ -1130,17 +1155,20 @@ def master_marksheet(request, grade):
 
         # 3. ATTENDANCE - BLUE WIRE
 
-        p = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end,
-                                      status='Present').values('date').distinct().count()
-        l = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end, status='Late').values(
-            'date').distinct().count()
-        a = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end,
-                                      status='Absent').values('date').distinct().count()
-        s = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end, status='Sick').values(
-            'date').distinct().count()
 
-        present_days = p
+        base_qs = Attendance.objects.filter(
+            student=student,
+            date__gte=term_start,
+            date__lte=term_end,
+            date__week_day__in=[2, 3, 4, 5, 6]
+        )
+        p = base_qs.filter(status='Present').values('date').distinct().count()
+        l = base_qs.filter(status='Late').values('date').distinct().count()
+        a = base_qs.filter(status='Absent').values('date').distinct().count()
+        s = base_qs.filter(status='Sick').values('date').distinct().count()
+
         possible_dates = p + a + s
+        present_days = p
 
         # 4. PINK WIRE 1: SUBJECTS PASSED
         subjects_passed_count = 0
@@ -1268,14 +1296,17 @@ def download_report_card(request, student_id, term):
     term_start = term_obj.start_date if term_obj else date.today()
     term_end = term_obj.end_date if term_obj else date.today()
 
-    p = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end,
-                                  status='Present').values('date').distinct().count()
-    l = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end, status='Late').values(
-        'date').distinct().count()
-    a = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end,
-                                  status='Absent').values('date').distinct().count()
-    s = Attendance.objects.filter(student=student, date__gte=term_start, date__lte=term_end, status='Sick').values(
-        'date').distinct().count()
+
+    base_qs = Attendance.objects.filter(
+        student=student,
+        date__gte=term_start,
+        date__lte=term_end,
+        date__week_day__in=[2, 3, 4, 5, 6]
+    )
+    p = base_qs.filter(status='Present').values('date').distinct().count()
+    l = base_qs.filter(status='Late').values('date').distinct().count()
+    a = base_qs.filter(status='Absent').values('date').distinct().count()
+    s = base_qs.filter(status='Sick').values('date').distinct().count()
 
     possible_dates = p + a + s
     present_days = p
@@ -1496,6 +1527,7 @@ def download_report_card(request, student_id, term):
     response['Content-Disposition'] = f'attachment; filename=Report_{student.adm_no}_{term_name}.docx'
     return response
 
+@login_required
 def export_master_marksheet_excel(request):
     class_name = request.GET.get('class', '').strip()
     year = request.GET.get('year', '2026').strip()
@@ -1605,6 +1637,7 @@ def parent_coursework_weekly(request, student_id):
         'current_week': current_week,
     })
 
+@login_required
 def school_coursework_weekly(request, student_id):
     student = get_object_or_404(Student, id=student_id)
 
@@ -1635,7 +1668,7 @@ def school_coursework_weekly(request, student_id):
 from django.shortcuts import render
 from .models import CourseWorkScore
 
-
+@login_required
 def sports_class_select(request):
     grades = Student.objects.values_list('grade', flat=True).distinct().order_by('grade')
 
@@ -1679,7 +1712,7 @@ def sports_class_list(request, grade):
     }
     return render(request, 'kids/sports_class_list.html', context)
 
-
+@login_required
 def head_supervision_engine(request):
     from .models import Mark, Subject, Student, SubjectEnrollment, CourseWorkMarkSheet, CourseWorkScore
     import datetime, re
@@ -1821,11 +1854,11 @@ def head_supervision_engine(request):
     }
     return render(request, 'kids/head_supervision.html', context)
 
-
+@login_required
 def class_master_marksheet(request, grade):
     return class_register(request, grade)  # temp, until you build master sheet
 
-
+@login_required
 def record_books_week_select(request, subject_id, *args, **kwargs):
     # The real view lives in academics app
     from academics.views import record_books_week_select as real_view
@@ -1837,6 +1870,7 @@ from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.utils import get_column_letter
 from django.http import HttpResponse
 
+@login_required
 def official_register_excel(request, grade="FORM 3A", year="2026", term="3"):
     from .models import Term
     term_obj = None
@@ -2003,5 +2037,81 @@ def official_register_excel(request, grade="FORM 3A", year="2026", term="3"):
     response['Content-Disposition'] = f'attachment; filename={grade}_{year}_Term{term}_BALANCED.xlsx'
     wb.save(response)
     return response
+
+@login_required
+def coursework_term_summary(request):
+    year = request.GET.get('year', '2026')
+    term_name = request.GET.get('term', 'Term 3')
+    grade = request.GET.get('grade', 'Form 3A')
+    subject_name = request.GET.get('subject', 'English Language')
+
+    # 1. All 13 weekly marksheets for this combo, in week order
+    sheets = CourseWorkMarkSheet.objects.filter(
+        subject__name=subject_name,
+        subject__grade=grade,
+        term__name=term_name,
+        term__year=year,
+    ).order_by('week__week_number')
+
+    students = Student.objects.filter(grade=grade).order_by('surname', 'first_name')
+
+    weeks_data = []
+    for sheet in sheets:
+        # 2. Build columns from THIS sheet only
+        # Each task = (label, date, out_of)
+        tasks = []
+        for label, date_field, out_field in [
+            ('Ex1','date_ex1','out_ex1'),
+            ('Ex2','date_ex2','out_ex2'),
+            ('Ex3','date_ex3','out_ex3'),
+            ('Ex4','date_ex4','out_ex4'),
+            ('Ex5','date_ex5','out_ex5'),
+            ('Ex6','date_ex6','out_ex6'),
+            ('Ex7','date_ex7','out_ex7'),
+            ('Test1','date_test1','out_test1'),
+            ('Test2','date_test2','out_test2'),
+        ]:
+            # Only show task if teacher set it up
+            if hasattr(sheet, date_field):
+                tasks.append({
+                    'label': label,
+                    'date': getattr(sheet, date_field, ''),
+                    'out_of': getattr(sheet, out_field, ''),
+                })
+
+        # 3. Scores for this sheet only
+        scores = {s.student_id: s for s in CourseWorkScore.objects.filter(marksheet=sheet)}
+
+        rows = []
+        for st in students:
+            sc = scores.get(st.id)
+            cells = []
+            for t in tasks:
+                if not sc:
+                    cells.append('')
+                else:
+                    # map Ex1 -> sc.ex1, Test1 -> sc.test1 etc
+                    field = t['label'].lower()  # ex1, test1
+                    val = getattr(sc, field, '')
+                    out = t['out_of']
+                    cells.append(f"{val}/{out}" if val != '' and val is not None else '')
+            rows.append({'student': st, 'cells': cells})
+
+        weeks_data.append({
+            'week_no': sheet.week.week_number if hasattr(sheet.week, 'week_number') else sheet.week_id,
+            'tasks': tasks,
+            'rows': rows,
+        })
+
+    return render(request, 'coursework_term_summary.html', {
+        'year': year, 'term_name': term_name, 'grade': grade,
+        'subject_name': subject_name, 'weeks_data': weeks_data,
+    })
+
+
+def logout_view(request):
+    logout(request)
+    request.session.flush()
+    return redirect('login')
 
 

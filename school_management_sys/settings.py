@@ -6,13 +6,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 #SECURITY
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dx&qrw$)6ban(%te7^y18q0s0r4ov#yu8z0aqtrxez_b5zgtwi')
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'False'
 
 #ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '192.168.0.100,192.168.0.101,localhost,127.0.0.1,.onrender.com,.pythonanywhere.com').split(',')
 ALLOWED_HOSTS = ['*']
-#For quick deploy, you can also use: ALLOWED_HOSTS = ['*']
+#ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
-#Application definition
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -21,7 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'kids',
-    'academics',  # Cap you have academics folder in DIR — adding it
+    'academics',
 ]
 
 MIDDLEWARE = [
@@ -33,6 +33,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'academics.middleware.NoCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'school_management_sys.urls'
@@ -69,7 +70,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Africa/Harare'  # Cap set to Harare
+TIME_ZONE = 'Africa/Harare'
 USE_I18N = True
 USE_TZ = True
 
@@ -80,3 +81,10 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'   # NOT /menu/ Cap, your main_menu is at '' Cap
+LOGOUT_REDIRECT_URL = '/login/'
+
+

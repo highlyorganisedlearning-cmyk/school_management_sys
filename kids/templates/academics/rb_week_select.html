@@ -1,24 +1,54 @@
 {% extends 'kids/base.html' %}
 {% block content %}
-
-
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
+<div class="container py-4" style="max-width: 900px;">
+    <a href="{% url 'record_books_subject_select' subject.grade %}" class="btn btn-sm btn-outline-secondary mb-3">&larr; Back to Subjects</a>
 
-<a href="{% url 'record_books_subject_select' subject.grade %}" class="btn btn-sm btn-secondary mb-3">&larr; Back</a>
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <h4 class="fw-bold mb-0">{{ subject.name }} <span class="text-muted fw-normal">| {{ subject.grade }}</span></h4>
+            <small class="text-muted">Step 3: Select Week &mdash; {{ subject.term }} &bull; Today: {{ today }}</small>
+        </div>
 
-<div class="container" style="max-width:400px; margin:30px auto;">
-    <div class="container" style="max-width:300px; margin:30px auto;"<h4>Step 3: Select Week for {{ subject.name }}</h4></div>
-    <div class="container" style="max-width:70px; margin:30px auto;">
-        {% for week in weeks %}
-            <a href="{% url 'coursework_marksheet' subject.id week.id %}" class="btn btn-outline-info m-2">
-                Week {{ week.week_number }}: {{ week.start_date }}
-            </a><button style="margin:5px;"></button>
-        {% empty %}
-            <p>No weeks added for this term. Go to Admin > AcademicWeeks</p>
-        {% endfor %}
+        <div class="card-body p-4">
+            <div class="row g-3">
+                {% for week in weeks %}
+                <div class="col-6 col-md-4">
+                    <a href="{% url 'coursework_marksheet' subject.id week.id %}"
+                       class="btn w-100 text-start p-3 rounded-3 position-relative
+                       {% if week.id == current_week_id %}
+                           btn-primary shadow
+                       {% else %}
+                           btn-outline-primary bg-white
+                       {% endif %}"
+                       style="min-height: 78px;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="fw-bold">Week {{ week.week_number }}</span>
+                            {% if week.id == current_week_id %}
+                                <span class="badge bg-warning text-dark">CURRENT</span>
+                            {% elif week.end_date < today %}
+                                <span class="badge bg-secondary">Done</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark border">Upcoming</span>
+                            {% endif %}
+                        </div>
+                        <small class="{% if week.id == current_week_id %}text-white-50{% else %}text-muted{% endif %} d-block mt-1">
+                            {{ week.start_date }} to {{ week.end_date }}
+                        </small>
+                        {% if week.id == current_week_id %}
+                        <small class="d-block mt-1 fw-bold">👉 You are here Sir/Mem</small>
+                        {% endif %}
+                    </a>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <p class="alert alert-warning mb-0">No weeks added for this term. Go to Admin &gt; AcademicWeeks</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
-</div>

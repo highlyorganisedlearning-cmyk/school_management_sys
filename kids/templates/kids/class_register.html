@@ -5,10 +5,28 @@
 <h1>Class Register: {{ grade }}</h1>
 <a href="{% url 'school_register' %}">Back to School Register</a>
 
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<!-- DATE PICKER Cap - allow correction Cap -->
+<form method="GET" style="margin:12px 0; background:#f1f5ff; padding:10px; border-radius:8px;">
+    <label><b>Register Date:</b></label>
+    <input type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" max="{{ real_today|date:'Y-m-d' }}">
+    <button type="submit" class="btn btn-sm btn-primary">Load Date</button>
+    {% if not is_today %}
+        <a href="?date={{ real_today|date:'Y-m-d' }}" class="btn btn-sm btn-outline-secondary">Back to Today</a>
+        <span style="color:#9a5b00; font-weight:bold;">⚠️ You are editing {{ selected_date }} - not today</span>
+    {% endif %}
+</form>
+
 <h2>{{ today }} - P:{{ present_count }} | S:{{ sick_count }} | A:{{ absent_count }} / {{ total }}</h2>
 
 <form method="POST">
     {% csrf_token %}
+    <input type="hidden" name="selected_date" value="{{ selected_date|date:'Y-m-d' }}">
     <table border="1" cellpadding="5">
         <tr>
             <th style="text-align:center;">Action</th>
@@ -36,12 +54,13 @@
         {% endfor %}
     </table>
 
-    {% if today_weekday < 5 %}
-  <button type="submit">Save Register</button>
+   {% if is_weekend %}
+  <p style="color:red;font-weight:bold;">Weekend - Register Closed for {{ selected_date }}</p>
+{% elif is_future %}
+  <p style="color:red;font-weight:bold;">Cannot mark future date Cap.</p>
 {% else %}
-  <p>Weekend - Register Closed</p>
+  <button type="submit">{% if is_today %}Save Attendance for {{ today }}{% else %}Save Correction for {{ selected_date }}{% endif %}</button>
 {% endif %}
 
-      <button type="submit">Save Attendance for {{ today }}</button>
 </form>
 </div>

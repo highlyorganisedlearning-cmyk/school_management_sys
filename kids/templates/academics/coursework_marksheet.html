@@ -48,18 +48,68 @@
 
             <div class="table-responsive">
                 <style>
-                    .date-input { width: 100%; font-size: 11px; padding: 2px 4px; }
-                    .mark-input input, .table input[type=text], .table input[type=number] { width: 56px; text-align: center; border-radius: 6px; }
-                    .a-red { background: #ffe2e2 !important; color: #b10000 !important; font-weight: bold; border: 1px solid red !important; }
-                    .s-orange { background: #fff0d6 !important; color: #9a5b00 !important; font-weight: bold; border: 1px solid orange !important; }
-                    .out-row input { background: #eef4ff; font-weight: bold; }
-                </style>
+    /* WRAP FIX Cap - table fits, scrolls inside card, name stays */
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        max-width: 100%;
+        display: block;
+    }
+    .marksheet-table {
+        width: max-content;
+        min-width: 100%;
+        table-layout: auto;
+        font-size: 12px;
+    }
+    .marksheet-table th, .marksheet-table td {
+        padding: 4px 3px !important;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+    /* Sticky # + Name Cap, so you never lose student Cap */
+    .marksheet-table th:nth-child(1),
+    .marksheet-table td:nth-child(1) {
+        position: sticky; left: 0; z-index: 2;
+        background: #fff; width: 32px; min-width: 32px;
+    }
+    .marksheet-table th:nth-child(2),
+    .marksheet-table td:nth-child(2) {
+        position: sticky; left: 32px; z-index: 2;
+        background: #fff; width: 150px; min-width: 150px; max-width: 150px;
+        text-align: left !important;
+        overflow: hidden; text-overflow: ellipsis;
+    }
+    .marksheet-table thead th:nth-child(1),
+    .marksheet-table thead th:nth-child(2) {
+        background: #f1f5ff; z-index: 3;
+    }
 
-                <table class="table table-bordered table-sm text-center align-middle mb-0">
+    .date-input { width: 100%; min-width: 88px; font-size: 11px; padding: 2px 4px; }
+    /* Smaller inputs Cap, so it fits Cap */
+    .mark-input input, .table input[type=text], .table input[type=number] {
+        width: 42px !important; height: 28px;
+        text-align: center; border-radius: 6px;
+        padding: 2px; font-size: 12px;
+    }
+    .a-red { background: #ffe2e2 !important; color: #b10000 !important; font-weight: bold; border: 1px solid red !important; }
+    .s-orange { background: #fff0d6 !important; color: #9a5b00 !important; font-weight: bold; border: 1px solid orange !important; }
+    .out-row input { background: #eef4ff; font-weight: bold; }
+
+    /* On big laptop Cap, fit without scroll Cap */
+    @media (min-width: 1200px) {
+        .marksheet-table { width: 100%; }
+        .marksheet-table th:nth-child(2),
+        .marksheet-table td:nth-child(2) { width: 180px; min-width: 180px; max-width: 180px; }
+        .table input[type=text], .table input[type=number] { width: 48px !important; }
+    }
+</style>
+
+                <table class="table table-bordered table-sm text-center align-middle mb-0 marksheet-table">
                     <thead>
                         <tr style="background:#f1f5ff;">
-                            <th style="width:40px;">#</th>
-                            <th style="width:200px;" class="text-start ps-3">Student Name</th>
+                            <th>#</th>
+                            <th class="text-start ps-3">Student Name</th>
+
                             <th>Exclude</th><th>Ex1</th><th>Ex2</th><th>Ex3</th><th>Ex4</th><th>Ex5</th><th>Ex6</th><th>Ex7</th>
                             <th class="bg-warning-subtle">Test1</th><th class="bg-warning-subtle">Test2</th>
                         </tr>

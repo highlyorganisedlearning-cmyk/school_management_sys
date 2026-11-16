@@ -1,11 +1,14 @@
 from django.urls import path
 from . import views
 from.views import parent_coursework_weekly, login_required
+from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
 from academics import views as acad_views
+from django.shortcuts import redirect
 
 urlpatterns = [
+    path('', lambda request: redirect('login')),  # root = login Cap
     path('', views.main_menu, name='main_menu'),
     path('register/', views.school_register, name='school_register'),
     path('fees/', views.school_fees, name='school_fees'),
@@ -43,6 +46,8 @@ urlpatterns = [
     path('register/', views.school_register, name='school_register'),
     path('register/excel/<str:grade>/<str:year>/<str:term>/', views.official_register_excel,
          name='official_register_excel'),
+    path('login/', auth_views.LoginView.as_view(template_name='kids/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
 
 ]
 
