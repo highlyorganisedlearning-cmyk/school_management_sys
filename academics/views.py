@@ -114,7 +114,7 @@ def coursework_marksheet(request, subject_id, week_id):
     # FIX: SEND all_grades to template!
     all_grades = Student.objects.values_list('grade', flat=True).distinct().order_by('grade')
 
-    return render(request, 'academics/Coursework_marksheet.html', {
+    return render(request, 'academics/coursework_marksheet.html', {
         'formset': formset,
         'marksheet_form': marksheet_form,
         'date_fields': date_fields,

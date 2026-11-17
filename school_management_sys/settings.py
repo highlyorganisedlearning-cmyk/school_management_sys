@@ -26,15 +26,17 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # for static files in prod
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'academics.middleware.MaintenanceModeMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # for static files in prod
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'academics.middleware.NoCacheMiddleware',
-]
+  ]
 
 ROOT_URLCONF = 'school_management_sys.urls'
 TEMPLATES = [

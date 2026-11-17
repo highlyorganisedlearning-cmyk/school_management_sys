@@ -1,13 +1,64 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
-<head><title>Parent Portal</title></head>
-<body style="font-family:Arial; padding:20px;">
-<h2> Parent Portal</h2>
-<form method="POST">
-  {% csrf_token %}
-  <label>Enter Phone Number:</label>
-  <input type="text" name="phone" placeholder="07xxxxxxx" required>
-  <button type="submit">Login</button>
-</form>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parent Portal - Captain High School</title>
+<style>
+body{
+  margin:0; font-family:Arial;
+  background: linear-gradient(180deg, #0f2a4d, #1a5ab5);
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.box{
+  background:#fff; width:100%; max-width:420px;
+  border-radius:20px; padding:30px 25px; text-align:center;
+  box-shadow:0 20px 40px rgba(0,0,0,0.3);
+}
+.logo{font-size:55px; margin:0}
+h1{color:#0f2a4d; margin:10px 0 5px; font-size:26px}
+.subtitle{color:#666; font-size:14px; margin:0 0 20px}
+h2{color:#0f2a4d; font-size:20px; margin-bottom:15px}
+label{display:block; text-align:left; font-weight:bold; color:#333; margin-bottom:6px; font-size:14px}
+input{
+  width:100%; padding:14px; font-size:17px;
+  border:2px solid #ddd; border-radius:12px; box-sizing:border-box;
+}
+input:focus{border-color:#1a5ab5; outline:none}
+.hint{font-size:12px; color:#888; text-align:left; margin:6px 0 18px}
+button{
+  width:100%; padding:14px; font-size:17px; font-weight:bold;
+  background:#0f2a4d; color:#fff; border:none; border-radius:12px; cursor:pointer;
+}
+button:hover{background:#1a5ab5}
+.sweet{margin-top:18px; font-size:13px; color:#888}
+.sweet b{color:#0f2a4d}
+.error{background:#ffe0e0; color:#a00; padding:10px; border-radius:10px; margin-bottom:15px; font-size:14px}
+</style>
+</head>
+<body>
+<div class="box">
+  <p class="logo">🎓</p>
+  <h1>Captain High School</h1>
+  <p class="subtitle">Highly Organised Learning</p>
+
+  <h2>Parent Portal</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="error">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="POST">
+    {% csrf_token %}
+    <label>Enter Phone Number:</label>
+    <input type="text" name="phone" placeholder="07xxxxxxx" required>
+    <p class="hint">Use the phone number you gave to the school. Example: 0771234567</p>
+    <button type="submit">Login as Parent →</button>
+  </form>
+
+  <p class="sweet">Sweet frobscottle for sweet parents 🍹<br><b>Problems? Call the school office.</b></p>
+</div>
 </body>
 </html>
