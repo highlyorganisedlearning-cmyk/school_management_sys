@@ -1,75 +1,138 @@
 {% extends 'academics/base.html' %}
-{% block content %}
-
 {% load static %}
+{% block content %}
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-    <h2>Welcome Parent</h2>
+<style>
+#phone-menu-btn {
+  display: none;
+  position: fixed; top: 10px; left: 10px; z-index: 9999;
+  background: #0a2a5e; color: white; border: none;
+  border-radius: 50%; width: 44px; height: 44px; font-size: 22px;
+}
+.shade-A { background: #f8d7da !important; color: #721c24 !important; font-weight: bold; }
+.shade-S { background: #fff3cd !important; color: #856404 !important; font-weight: bold; }
+.shade-low { background: #f8d7da !important; color: #a00 !important; font-weight: bold; border: 2px solid #e55353 !important; }
 
-    <div class="card border-0 shadow-sm rounded-4 p-4">
-{% for week, score_list in weekly_data.items %}
-<div class="mb-4">
-    <h5 class="fw-bold">Week {{ week.week_number }} <small class="text-muted">{{ week.start_date }} - {{ week.end_date }}</small></h5><h>{{'Key: S = Sick, A = Absent, - = Marks Not Entered, -\5 = Student Mark Missing'}}</h>
-    <div class="table-responsive">
-    <table class="table table-bordered table-sm text-center align-middle">
-        <thead class="table-primary">
-            <tr><th>Ex & Tests</th><th>Ex_1</th><th>Ex_2</th><th>Ex_3</th><th>Ex_4</th><th>Ex_5</th><th>Ex_6</th><th>Ex_7</th><th>Test_1</th><th>Test_2</th></tr>
+/* KILL SIDEWAYS - PHONE */
+@media (max-width: 768px) {
+  header, .navbar, nav, .topbar, .site-header { display: none !important; }
+  body.menu-open header, body.menu-open .navbar,
+  body.menu-open nav, body.menu-open .topbar { display: block !important; }
+  #phone-menu-btn { display: block; }
 
-        <tr></tr>
-        <tr></tr>
+  /* Kill ALL padding from base - this is why old one fit! */
+  .container, main, .content, .container-fluid {
+    padding-left: 2px !important; padding-right: 2px !important;
+    margin-left: 0 !important; margin-right: 0 !important;
+    max-width: 100% !important;
+  }
+  .card { padding: 6px !important; border-radius: 8px !important; }
 
-        </thead>
+  /* Kill the sideways scroller */
+  .table-responsive { overflow: visible !important; }
 
-        <style>
-    .shade-A { background: #f8d7da !important; color: #721c24 !important; font-weight: bold; } /* A/5 Absent = Red */
-    .shade-S { background: #fff3cd !important; color: #856404 !important; font-weight: bold; } /* S/5 Sick = Yellow */
+  /* Force table to fit 100% - no scroll */
+  .weekly-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    font-size: 10px !important;
+  }
+  .weekly-table th, .weekly-table td {
+    padding: 3px 1px !important;
+    font-size: 10px !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+  /* Subject column wider, marks columns tiny */
+  .weekly-table th:first-child, .weekly-table td:first-child {
+    width: 24% !important; text-align: left !important; font-size: 10px !important;
+  }
+  .weekly-table th:not(:first-child), .weekly-table td:not(:first-child) {
+    width: 7.6% !important;
+  }
+  .student-head h3 { font-size: 17px !important; }
+  h5 { font-size: 14px !important; }
+}
 </style>
 
-<tbody>
-{% for s in score_list %}
-<tr>
-    <td class="text-start">{{ s.marksheet.subject.name }}</td>
+<button id="phone-menu-btn" onclick="document.body.classList.toggle('menu-open')">☰</button>
 
-    <td class="{% if 'A' in s.p1_raw %}shade-A{% elif 'S' in s.p1_raw %}shade-S{% endif %}">
-        {% if s.p1_raw == 'None/' or s.p1_raw == 'None' or not s.p1_raw %}-{% else %}{{ s.p1_raw }}{% endif %}
-    </td>
-    <td class="{% if 'A' in s.p2_raw %}shade-A{% elif 'S' in s.p2_raw %}shade-S{% endif %}">
-        {% if s.p2_raw == 'None/' or s.p2_raw == 'None' or not s.p2_raw %}-{% else %}{{ s.p2_raw }}{% endif %}
-    </td>
-    <td class="{% if 'A' in s.p3_raw %}shade-A{% elif 'S' in s.p3_raw %}shade-S{% endif %}">
-        {% if s.p3_raw == 'None/' or s.p3_raw == 'None' or not s.p3_raw %}-{% else %}{{ s.p3_raw }}{% endif %}
-    </td>
-    <td class="{% if 'A' in s.p4_raw %}shade-A{% elif 'S' in s.p4_raw %}shade-S{% endif %}">
-        {% if s.p4_raw == 'None/' or s.p4_raw == 'None' or not s.p4_raw %}-{% else %}{{ s.p4_raw }}{% endif %}
-    </td>
-    <td class="{% if 'A' in s.p5_raw %}shade-A{% elif 'S' in s.p5_raw %}shade-S{% endif %}">
-        {% if s.p5_raw == 'None/' or s.p5_raw == 'None' or not s.p5_raw %}-{% else %}{{ s.p5_raw }}{% endif %}
-    </td>
-    <td class="{% if 'A' in s.p6_raw %}shade-A{% elif 'S' in s.p6_raw %}shade-S{% endif %}">
-        {% if s.p6_raw == 'None/' or s.p6_raw == 'None' or not s.p6_raw %}-{% else %}{{ s.p6_raw }}{% endif %}
-    </td>
-    <td class="{% if 'A' in s.p7_raw %}shade-A{% elif 'S' in s.p7_raw %}shade-S{% endif %}">
-        {% if s.p7_raw == 'None/' or s.p7_raw == 'None' or not s.p7_raw %}-{% else %}{{ s.p7_raw }}{% endif %}
-    </td>
-    <td class="{% if 'A' in s.p8_raw %}shade-A{% elif 'S' in s.p8_raw %}shade-S{% endif %}">
-        {% if s.p8_raw == 'None/' or s.p8_raw == 'None' or not s.p8_raw %}-{% else %}{{ s.p8_raw }}{% endif %}
-    </td>
-    <td class="{% if 'A' in s.p9_raw %}shade-A{% elif 'S' in s.p9_raw %}shade-S{% endif %}">
-        {% if s.p9_raw == 'None/' or s.p9_raw == 'None' or not s.p9_raw %}-{% else %}{{ s.p9_raw }}{% endif %}
-    </td>
-</tr>
-{% endfor %}
-</tbody>
+<!-- 3. BACK LINK - always visible, never lost -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <a href="/parent/" class="btn btn-sm btn-outline-primary">← Back to My Children</a>
+  <a href="/parent/" class="btn btn-sm btn-light">🏠 Parent Home</a>
+</div>
 
+<!-- 2. STUDENT NAME + CLASS - so Tino is safe, Taku is safe -->
+<div class="card border-0 shadow-sm rounded-4 p-3 mb-3 student-head" style="background:#eef4ff;">
+  {% if student %}
+    <h3 class="fw-bold mb-0">{{ student.first_name }} {{ student.last_name }}</h3>
+    <div class="text-muted">{{ student.current_class }} {% if student.form %}• Form {{ student.form }}{% endif %} {% if student.stream %}• {{ student.stream }}{% endif %}</div>
+  {% elif weekly_data %}
+    {# Fallback: take name from first score if view didn't pass student #}
+    {% for week, score_list in weekly_data.items %}
+      {% for s in score_list|slice:":1" %}
+        <h3 class="fw-bold mb-0">{{ s.marksheet.student.first_name }} {{ s.marksheet.student.last_name }}</h3>
+        <div class="text-muted">{{ s.marksheet.student.current_class }}</div>
       {% endfor %}
-
-    </table>
-
-    </div>
+    {% endfor %}
+  {% else %}
+    <h3 class="fw-bold mb-0">Welcome Parent</h3>
+  {% endif %}
+  <small class="text-muted">Coursework - Weekly Ex & Tests</small>
 </div>
 
+{% for week, score_list in weekly_data.items %}
+<div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+  <h5 class="fw-bold">Week {{ week.week_number }} <small class="text-muted">{{ week.start_date }} - {{ week.end_date }}</small></h5>
+  <p class="small text-muted mb-2">Key: S = Sick, A = Absent, - = Marks Not Entered, -/5 = Student Mark Missing</p>
 
+  <div class="table-responsive">
+  <table class="table table-bordered table-sm text-center align-middle weekly-table">
+    <thead class="table-primary">
+      <tr><th>Ex & Tests</th><th>Ex_1</th><th>Ex_2</th><th>Ex_3</th><th>Ex_4</th><th>Ex_5</th><th>Ex_6</th><th>Ex_7</th><th>Test_1</th><th>Test_2</th></tr>
+    </thead>
+    <tbody>
+    {% for s in score_list %}
+    <tr>
+      <td class="text-start fw-semibold">{{ s.marksheet.subject.name }}</td>
+      <td class="{% if 'A' in s.p1_raw %}shade-A{% elif 'S' in s.p1_raw %}shade-S{% endif %}">{% if s.p1_raw == 'None/' or s.p1_raw == 'None' or not s.p1_raw %}-{% else %}{{ s.p1_raw }}{% endif %}</td>
+      <td class="{% if 'A' in s.p2_raw %}shade-A{% elif 'S' in s.p2_raw %}shade-S{% endif %}">{% if s.p2_raw == 'None/' or s.p2_raw == 'None' or not s.p2_raw %}-{% else %}{{ s.p2_raw }}{% endif %}</td>
+      <td class="{% if 'A' in s.p3_raw %}shade-A{% elif 'S' in s.p3_raw %}shade-S{% endif %}">{% if s.p3_raw == 'None/' or s.p3_raw == 'None' or not s.p3_raw %}-{% else %}{{ s.p3_raw }}{% endif %}</td>
+      <td class="{% if 'A' in s.p4_raw %}shade-A{% elif 'S' in s.p4_raw %}shade-S{% endif %}">{% if s.p4_raw == 'None/' or s.p4_raw == 'None' or not s.p4_raw %}-{% else %}{{ s.p4_raw }}{% endif %}</td>
+      <td class="{% if 'A' in s.p5_raw %}shade-A{% elif 'S' in s.p5_raw %}shade-S{% endif %}">{% if s.p5_raw == 'None/' or s.p5_raw == 'None' or not s.p5_raw %}-{% else %}{{ s.p5_raw }}{% endif %}</td>
+      <td class="{% if 'A' in s.p6_raw %}shade-A{% elif 'S' in s.p6_raw %}shade-S{% endif %}">{% if s.p6_raw == 'None/' or s.p6_raw == 'None' or not s.p6_raw %}-{% else %}{{ s.p6_raw }}{% endif %}</td>
+      <td class="{% if 'A' in s.p7_raw %}shade-A{% elif 'S' in s.p7_raw %}shade-S{% endif %}">{% if s.p7_raw == 'None/' or s.p7_raw == 'None' or not s.p7_raw %}-{% else %}{{ s.p7_raw }}{% endif %}</td>
+      <td class="{% if 'A' in s.p8_raw %}shade-A{% elif 'S' in s.p8_raw %}shade-S{% endif %}">{% if s.p8_raw == 'None/' or s.p8_raw == 'None' or not s.p8_raw %}-{% else %}{{ s.p8_raw }}{% endif %}</td>
+      <td class="{% if 'A' in s.p9_raw %}shade-A{% elif 'S' in s.p9_raw %}shade-S{% endif %}">{% if s.p9_raw == 'None/' or s.p9_raw == 'None' or not s.p9_raw %}-{% else %}{{ s.p9_raw }}{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
 </div>
+{% empty %}
+<div class="alert alert-info">No coursework yet for this student.</div>
+{% endfor %}
+
+<script>
+// 4. Highlight BELOW HALF with JS - works for 23/50, 5/30 etc, no view change needed
+document.querySelectorAll('.weekly-table td').forEach(function(td){
+  var txt = td.textContent.trim();
+  // Skip subject name, skip A/S, skip -
+  if(!txt.includes('/')) return;
+  if(txt.includes('A') || txt.includes('S')) return;
+  var parts = txt.split('/');
+  var got = parseFloat(parts[0]);
+  var total = parseFloat(parts[1]);
+  if(!isNaN(got) && !isNaN(total) && total > 0){
+    if(got < total / 2){
+      td.classList.add('shade-low');
+      td.title = 'Below half: ' + txt;
+    }
+  }
+});
+</script>
 {% endblock %}
-
-
