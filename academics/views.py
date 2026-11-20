@@ -181,7 +181,7 @@ def coursework_term_summary(request):
                     field = t['label'].lower()  # Ex1 -> ex1, Test1 -> test1
                     val = getattr(sc, field, '')
                     out = t['out_of']
-                    if val == '' or val is None:
+                    if val == '' or val is '':
                         cells.append('')
                     elif out:
                         cells.append(f"{val}/{out}")

@@ -47,88 +47,52 @@
             {{ formset.management_form }}
 
             <div class="table-responsive">
-                <style>
-    /* WRAP FIX Cap - table fits, scrolls inside card, name stays */
-    .table-responsive {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-        max-width: 100%;
-        display: block;
-    }
-    .marksheet-table {
-        width: max-content;
-        min-width: 100%;
-        table-layout: auto;
-        font-size: 12px;
-    }
-    .marksheet-table th, .marksheet-table td {
-        padding: 4px 3px !important;
-        white-space: nowrap;
-        vertical-align: middle;
-    }
-    /* Sticky # + Name Cap, so you never lose student Cap */
-    .marksheet-table th:nth-child(1),
-    .marksheet-table td:nth-child(1) {
-        position: sticky; left: 0; z-index: 2;
-        background: #fff; width: 32px; min-width: 32px;
-    }
-    .marksheet-table th:nth-child(2),
-    .marksheet-table td:nth-child(2) {
-        position: sticky; left: 32px; z-index: 2;
-        background: #fff; width: 150px; min-width: 150px; max-width: 150px;
-        text-align: left !important;
-        overflow: hidden; text-overflow: ellipsis;
-    }
-    .marksheet-table thead th:nth-child(1),
-    .marksheet-table thead th:nth-child(2) {
-        background: #f1f5ff; z-index: 3;
-    }
+  <style>
+header, .navbar, nav { min-height: 40px !important; padding: 3px 0 !important; }
+header h1, .navbar-brand { font-size: 15px !important; }
 
-    .date-input { width: 100%; min-width: 88px; font-size: 11px; padding: 2px 4px; }
-    /* Smaller inputs Cap, so it fits Cap */
-    .mark-input input, .table input[type=text], .table input[type=number] {
-        width: 42px !important; height: 28px;
-        text-align: center; border-radius: 6px;
-        padding: 2px; font-size: 12px;
-    }
-    .a-red { background: #ffe2e2 !important; color: #b10000 !important; font-weight: bold; border: 1px solid red !important; }
-    .s-orange { background: #fff0d6 !important; color: #9a5b00 !important; font-weight: bold; border: 1px solid orange !important; }
-    .out-row input { background: #eef4ff; font-weight: bold; }
+/* Wrapper MUST have height for sticky to work */
+.table-responsive { overflow: auto !important; max-height: calc(100vh - 60px); }
 
-    /* On big laptop Cap, fit without scroll Cap */
-    @media (min-width: 1200px) {
-        .marksheet-table { width: 100%; }
-        .marksheet-table th:nth-child(2),
-        .marksheet-table td:nth-child(2) { width: 180px; min-width: 180px; max-width: 180px; }
-        .table input[type=text], .table input[type=number] { width: 48px !important; }
-    }
+/* Freeze - NOW ALL IN THEAD, WORKS */
+.marksheet-table thead tr:nth-child(1) th { position: sticky !important; top: 0 !important; z-index: 30; background: #f1f5ff !important; }
+.marksheet-table thead tr:nth-child(2) td { position: sticky !important; top: 32px !important; z-index: 29; background: #eef4ff !important; }
+.marksheet-table thead tr:nth-child(3) td { position: sticky !important; top: 64px !important; z-index: 28; background: #fff !important; border-bottom: 2px solid #0a2a5e; }
+
+.marksheet-table th:nth-child(1), .marksheet-table td:nth-child(1){ position: sticky; left: 0; z-index: 20; background: #fff; width: 30px; min-width: 30px; }
+.marksheet-table th:nth-child(2), .marksheet-table td:nth-child(2){ position: sticky; left: 30px; z-index: 20; background: #fff; width: 140px; min-width: 140px; }
+
+.marksheet-table th, .marksheet-table td { padding: 3px 2px !important; font-size: 12px; }
+/* FIX: Only text marks are 42px, DATE is NOT */
+.marksheet-table input[type=text], .marksheet-table input[type=number] { width: 42px !important; height: 28px; text-align: center; font-size: 12px; }
+.marksheet-table input[type=date].date-input { width: 122px !important; min-width: 122px !important; height: 28px; font-size: 11px; padding: 2px 4px; }
+
+.a-red { background: #ffe2e2 !important; color: #b10000 !important; font-weight: bold; border: 1px solid red !important; }
+.s-orange { background: #fff0d6 !important; color: #9a5b00 !important; font-weight: bold; border: 1px solid orange !important; }
+.too-big { background: #ff0000 !important; color: white !important; font-weight: bold; border: 2px solid darkred !important; }
 </style>
 
                 <table class="table table-bordered table-sm text-center align-middle mb-0 marksheet-table">
                     <thead>
-                        <tr style="background:#f1f5ff;">
-                            <th>#</th>
-                            <th class="text-start ps-3">Student Name</th>
-
-                            <th>Exclude</th><th>Ex1</th><th>Ex2</th><th>Ex3</th><th>Ex4</th><th>Ex5</th><th>Ex6</th><th>Ex7</th>
-                            <th class="bg-warning-subtle">Test1</th><th class="bg-warning-subtle">Test2</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="out-row">
-                             <td></td>
-                            <td colspan="2" class="text-end fw-bold pe-3 bg-light">Out Of</td>
-                            {% for field in out_fields %}
-                                <td>{{ field }}</td>
-                            {% endfor %}
-                        </tr>
-                        <tr>
-                            <td colspan="2" class="text-end pe-3 bg-light fw-bold">Date</td>
-                            <td></td>
-                            {% for field in date_fields %}
-                                <td><input type="date" name="{{ field.name }}" value="{{ field.value|date:'Y-m-d' }}" class="form-control form-control-sm date-input"></td>
-                            {% endfor %}
-                        </tr>
+  <tr style="background:#f1f5ff;">
+    <th>#</th><th class="text-start ps-3">Student Name</th><th>Exclude</th>
+    <th>Ex1</th><th>Ex2</th><th>Ex3</th><th>Ex4</th><th>Ex5</th><th>Ex6</th><th>Ex7</th>
+    <th class="bg-warning-subtle">Test1</th><th class="bg-warning-subtle">Test2</th>
+  </tr>
+  <!-- OUT OF - NOW IN THEAD, WILL STAY -->
+  <tr class="out-row">
+    <td class="text-end fw-bold pe-3 bg-light">Out Of</td><td></td><td></td>
+    {% for field in out_fields %}<td>{{ field }}</td>{% endfor %}
+  </tr>
+  <!-- DATE - NOW IN THEAD, WILL STAY -->
+  <tr>
+    <td class="text-end pe-3 bg-light fw-bold">Date</td><td></td><td></td>
+    {% for field in date_fields %}
+    <td><input type="date" name="{{ field.name }}" value="{{ field.value|date:'Y-m-d' }}" class="form-control form-control-sm date-input"></td>
+    {% endfor %}
+  </tr>
+</thead>
+<tbody>
 
                         {% for form in formset %}
 <tr {% if form.instance.is_excluded_flag %}style="background:#ffe6e6;opacity:0.6;"{% endif %}>
@@ -163,19 +127,57 @@
         </form>
     </div>
 </div>
-
 <script>
-document.addEventListener('input', e=>{
-    if(e.target.tagName==='INPUT' && e.target.type==='text'){
-        let v=e.target.value.toUpperCase(); e.target.classList.remove('a-red','s-orange');
-        if(v==='A') e.target.classList.add('a-red');
-        if(v==='S') e.target.classList.add('s-orange');
-    }
+// Tiny keypad - Done IS Enter
+let active = null;
+let pad = document.createElement('div');
+pad.innerHTML = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:420px;margin:auto;">
+<button class="kp btn btn-light btn-sm">1</button><button class="kp btn btn-light btn-sm">2</button><button class="kp btn btn-light btn-sm">3</button><button class="kp btn btn-light btn-sm">4</button><button class="kp btn btn-light btn-sm">5</button><button class="kp btn btn-light btn-sm">6</button><button class="kp btn btn-light btn-sm">7</button>
+<button class="kp btn btn-light btn-sm">8</button><button class="kp btn btn-light btn-sm">9</button><button class="kp btn btn-light btn-sm">0</button><button class="kp btn btn-danger btn-sm">A</button><button class="kp btn btn-warning btn-sm">S</button><button id="kp-del" class="btn btn-secondary btn-sm">⌫</button><button id="kp-enter" class="btn btn-success btn-sm">Enter ↓</button></div>`;
+pad.style.cssText = "display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#0a2a5e;padding:6px;";
+document.body.appendChild(pad);
+
+function goDown(){
+  if(!active) return;
+  let row = active.closest('tr');
+  let col = Array.from(active.closest('td').parentNode.children).indexOf(active.closest('td'));
+  let nextRow = row.nextElementSibling;
+  if(nextRow){
+    let nextInp = nextRow.children[col]?.querySelector('input[type=text]');
+    if(nextInp){ nextInp.click(); nextInp.scrollIntoView({block:'center'}); return; }
+  }
+  pad.style.display='none'; active.blur();
+}
+function guard(inp){
+  let td = inp.closest('td');
+  let col = Array.from(td.parentNode.children).indexOf(td);
+  let outRow = document.querySelector('.marksheet-table thead tr:nth-child(2)');
+  let outInp = outRow.querySelectorAll('td')[col]?.querySelector('input');
+  let outVal = outInp ? parseFloat(outInp.value) : NaN;
+  let v = inp.value.trim().toUpperCase();
+  inp.classList.remove('a-red','s-orange','too-big');
+  if(v==='A') inp.classList.add('a-red');
+  else if(v==='S') inp.classList.add('s-orange');
+  else if(v!=='' && !isNaN(outVal) && parseFloat(v) > outVal){ inp.classList.add('too-big'); inp.title = 'Too big! Out of ' + outVal; }
+}
+document.querySelectorAll('input[type=text]').forEach(inp=>{
+  inp.setAttribute('readonly','readonly');
+  inp.addEventListener('click', ()=>{ active = inp; pad.style.display='block'; });
+  inp.addEventListener('input', ()=> guard(inp));
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); goDown(); } });
+  guard(inp);
 });
-window.addEventListener('DOMContentLoaded', ()=>{
-    document.querySelectorAll('input[type=text]').forEach(el=>{
-        let v=el.value.toUpperCase(); if(v==='A') el.classList.add('a-red'); if(v==='S') el.classList.add('s-orange');
-    });
+pad.addEventListener('click', e=>{
+  if(!active) return;
+  if(e.target.classList.contains('kp')){
+    let v = e.target.textContent.trim();
+    if(v==='A' || v==='S') active.value = v;
+    else { if(active.value==='A'||active.value==='S') active.value=''; active.value = (active.value+v).slice(0,3); }
+    guard(active);
+  }
+  if(e.target.id==='kp-del'){ active.value = active.value.slice(0,-1); guard(active); }
+  if(e.target.id==='kp-enter'){ goDown(); } // Enter = Next Down
 });
 </script>
+
 {% endblock %}

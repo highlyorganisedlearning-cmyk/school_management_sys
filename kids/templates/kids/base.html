@@ -15,9 +15,13 @@
     <style>
     body { background:#f4f6f9; font-family: Arial, sans-serif; }
     .sidebar {
-        width: 250px; min-height: 100vh; background:#0f2a4d; color:#fff;
-        position: fixed; top:0; left:0; padding:20px 14px; z-index: 1000;
-    }
+    width: 250px; min-height: 100vh; background:#0f2a4d; color:#fff;
+    position: fixed; top:0; left:0; padding:20px 14px; z-index: 1001;
+    overflow-y: auto; /* <-- THIS LETS YOU SCROLL TO BOTTOM CAP! */
+    height: 100dvh;
+    padding-bottom: 100px;
+}
+
     .sidebar a { color:#dbe7ff; text-decoration:none; display:block; padding:10px 12px; border-radius:8px; margin-bottom:4px; }
     .sidebar a:hover, .sidebar a.active { background:#1e4a8a; color:#fff; }
     .main { margin-left: 250px; padding: 24px; }
@@ -55,10 +59,10 @@
 
 <body>
 
-<!-- PHONE TOPBAR - now with hamburger + logout -->
+<!-- PHONE TOPBAR -->
 <div class="topbar">
-    <button type="button" onclick="document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show');">☰</button>
-    <b>🏫 Captain High School Portal</b>
+    <button onclick="toggleMenu()">☰</button>
+    <b>🏫 Captain High School Portals</b>
     {% if user.is_authenticated %}
         <span style="font-size:12px;">{{ user.username }}</span>
         <form method="post" action="{% url 'logout' %}" style="margin:0;">
@@ -69,29 +73,32 @@
         <a href="{% url 'login' %}">🔑 Login</a>
     {% endif %}
 </div>
-<div class="overlay" id="overlay" onclick="document.getElementById('sidebar').classList.remove('open'); this.classList.remove('show');"></div>
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-<!-- DESKTOP SIDEBAR -->
-<div class="sidebar">
+<!-- ONE SIDEBAR FOR ALL -->
+<div class="sidebar" id="sidebar">
     <h4 class="fw-bold mb-1">🏫 C.H.S Portal</h4>
-    <small class="text-white-50 d-block mb-4">LEARNER IS KING</small>
+    <small class="text-white-50 d-block mb-4" >ORGANISED LEARNING</small>
     <a href="{% url 'main_menu' %}">🏠 Main Menu</a>
-    <a href="{% url 'school_register' %}">📋 School Register</a>
     <a href="{% url 'school_fees' %}">💰 Admission</a>
+    <a href="{% url 'school_register' %}">📋 School Register</a>
     <hr style="border-color:#ffffff33;">
     <small class="text-white-50">RECORDS</small>
     <a href="{% url 'record_books_class_select' %}">📚 Record Books</a>
+    <a href="{% url 'coursework_term_summary' %}">📊 HOD Supervision</a>
+    <a href="/head/supervision/">👀 HEAD Supervision</a>
+    <a href="/admin/">⚙️ Admin</a>
+    <hr style="border-color:#ffffff33;">
     {% if user.is_authenticated %}
-        <hr style="border-color:#ffffff33;">
         <small class="text-white-50">Logged in as {{ user.username }}</small>
         <form method="post" action="{% url 'logout' %}" style="margin:0;">
-    {% csrf_token %}
-    <button type="submit" style="background:none;border:none;color:#dbe7ff;padding:10px 12px;width:100%;text-align:left;cursor:pointer;">🚪 Logout ({{ user.username }})</button>
-</form>
-
+            {% csrf_token %}
+            <button type="submit" style="background:none;border:none;color:#dbe7ff;padding:10px 12px;width:100%;text-align:left;cursor:pointer;">🚪 Logout ({{ user.username }})</button>
+        </form>
     {% else %}
         <a href="{% url 'login' %}">🔑 Login</a>
     {% endif %}
+    <div style="height:80px;"></div>
 </div>
 
 <div class="main">
@@ -102,6 +109,18 @@
     {% endif %}
     {% block content %}{% endblock %}
 </div>
+<script>
+function toggleMenu(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+  // Lock page behind menu so blue bar does not push it
+  if(document.getElementById('sidebar').classList.contains('open')){
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+}
+</script>
 
 </body>
 </html>
