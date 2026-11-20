@@ -8,7 +8,7 @@
 <div class="container">
 <h1>{{ grade }} - Master MarkSheet - {{ term.name }}</h1>
 <a href="{% url 'grade_subjects' grade %}">← Back to Subjects</a>
-<a href="{% url 'generate_professional_reports' grade %}" class="btn-download">Generate Class Reports</a>
+
 
 <div class="table-wrapper">
 <table class="master-table">
@@ -132,10 +132,6 @@
         <tr><td colspan="100%">No students found in {{ grade }}</td></tr>
     {% endfor %}
     </tbody>
-    <a href="/export-marksheet/?class={{ grade }}&year={{ year }}&term={{ term }}">
-   Export to Excel (Mark sheets folder)
-</a>
-
 
 </table>
 </div>
