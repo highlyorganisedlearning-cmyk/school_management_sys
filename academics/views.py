@@ -208,7 +208,7 @@ def coursework_term_summary(request):
 
     all_years = sorted(set([t.start_date.year for t in Term.objects.all()]))
 
-    return render(request, '/school_management_sys/kids/templates/academics/coursework_term_summary.html', {
+    return render(request, 'academics/coursework_term_summary.html', {
         'year': year, 'term_name': term_name, 'grade': grade,
         'subject_name': subject_name, 'weeks_data': weeks_data,
         'all_grades': all_grades, 'all_subjects': all_subjects,
